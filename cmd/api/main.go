@@ -20,5 +20,4 @@ func main() {
 
 	// Run server
 	server.Run(":" + port)
-
 }

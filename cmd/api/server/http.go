@@ -1,4 +1,4 @@
-package server
+	package server
 
 import (
 	"context"
@@ -25,7 +25,7 @@ func dbConnect() *mongo.Client {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
 	defer cancel()
 
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/locateme?retryWrites=true&w=majority"))
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
 	if err != nil {
 		panic(err)
 	}

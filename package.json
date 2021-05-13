@@ -1,0 +1,5 @@
+{
+    "scripts": {
+        "gorun": "go run ./cmd/api/main.go"
+    }
+}
