@@ -1,6 +1,6 @@
 package domain
 
 type WeekDays struct {
-	Name       string
-	NumericDay int
+	Name       string `bson:"name,omitempty" json:"name,omitempty"`
+	NumericDay  int `bson:"numeric_day,omitempty" json:"numeric_day,omitempty"`
 }

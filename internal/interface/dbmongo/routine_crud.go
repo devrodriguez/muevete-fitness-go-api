@@ -9,8 +9,8 @@ import (
 )
 
 type IDbRoutineCrud interface {
-	GetAll(*gin.Context) ([]domain.Routine, error)
-	Create(*gin.Context, domain.Routine) error
+	GetAllRoutines(*gin.Context) ([]domain.Routine, error)
+	CreateRoutine(*gin.Context, domain.Routine) error
 }
 
 type ImpDbRoutineCrud struct {
@@ -23,7 +23,7 @@ func NewDbRoutineCrud(cli *mongo.Client) IDbRoutineCrud {
 	}
 }
 
-func (rc *ImpDbRoutineCrud) GetAll(c *gin.Context) ([]domain.Routine, error) {
+func (rc *ImpDbRoutineCrud) GetAllRoutines(c *gin.Context) ([]domain.Routine, error) {
 	var rs []domain.Routine
 
 	findOpt := options.Find()
@@ -47,7 +47,7 @@ func (rc *ImpDbRoutineCrud) GetAll(c *gin.Context) ([]domain.Routine, error) {
 	return rs, nil
 }
 
-func (rc *ImpDbRoutineCrud) Create(c *gin.Context, r domain.Routine) error {
+func (rc *ImpDbRoutineCrud) CreateRoutine(c *gin.Context, r domain.Routine) error {
 	docRef := rc.Client.Database("fitness").Collection("routines")
 
 	_, err := docRef.InsertOne(c, r)

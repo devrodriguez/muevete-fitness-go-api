@@ -7,8 +7,8 @@ import (
 )
 
 type ICrudRoutine interface {
-	GetAll(c *gin.Context) ([]domain.Routine, error)
-	Create(c *gin.Context, ds domain.Routine) error
+	GetAllRoutines(c *gin.Context) ([]domain.Routine, error)
+	CreateRoutine(c *gin.Context, ds domain.Routine) error
 }
 
 type ImpCrudRoutine struct {
@@ -21,8 +21,8 @@ func NewCrudRoutine(dbImp dbmongo.IDbRoutineCrud) ICrudRoutine {
 	}
 }
 
-func (cs *ImpCrudRoutine) GetAll(c *gin.Context) ([]domain.Routine, error) {
-	rs, err := cs.dbImp.GetAll(c)
+func (cs *ImpCrudRoutine) GetAllRoutines(c *gin.Context) ([]domain.Routine, error) {
+	rs, err := cs.dbImp.GetAllRoutines(c)
 
 	if err != nil {
 		return nil, err
@@ -31,8 +31,8 @@ func (cs *ImpCrudRoutine) GetAll(c *gin.Context) ([]domain.Routine, error) {
 	return rs, nil
 }
 
-func (cs *ImpCrudRoutine) Create(c *gin.Context, r domain.Routine) error {
-	err := cs.dbImp.Create(c, r)
+func (cs *ImpCrudRoutine) CreateRoutine(c *gin.Context, r domain.Routine) error {
+	err := cs.dbImp.CreateRoutine(c, r)
 
 	if err != nil {
 		return err

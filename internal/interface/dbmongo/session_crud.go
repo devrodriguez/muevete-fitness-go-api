@@ -9,8 +9,8 @@ import (
 )
 
 type IDbSessionCrud interface {
-	GetAll(*gin.Context) ([]domain.Session, error)
-	Create(*gin.Context, domain.Session) error
+	GetAllSessions(*gin.Context) ([]domain.Session, error)
+	CreateSession(*gin.Context, domain.Session) error
 }
 
 type ImpDbSessionCrud struct {
@@ -23,7 +23,7 @@ func NewDbSessionCrud(cli *mongo.Client) IDbSessionCrud {
 	}
 }
 
-func (sc *ImpDbSessionCrud) GetAll(c *gin.Context) ([]domain.Session, error) {
+func (sc *ImpDbSessionCrud) GetAllSessions(c *gin.Context) ([]domain.Session, error) {
 	var sess []domain.Session
 
 	findOpt := options.Find()
@@ -47,7 +47,7 @@ func (sc *ImpDbSessionCrud) GetAll(c *gin.Context) ([]domain.Session, error) {
 	return sess, nil
 }
 
-func (sc *ImpDbSessionCrud) Create(c *gin.Context, ses domain.Session) error {
+func (sc *ImpDbSessionCrud) CreateSession(c *gin.Context, ses domain.Session) error {
 	docRef := sc.Client.Database("fitness").Collection("sessions")
 
 	_, err := docRef.InsertOne(c, ses)

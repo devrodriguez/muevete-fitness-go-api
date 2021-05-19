@@ -7,8 +7,8 @@ import (
 )
 
 type ICrudSession interface {
-	GetAll(c *gin.Context) ([]domain.Session, error)
-	Create(c *gin.Context, ds domain.Session) error
+	GetAllSessions(c *gin.Context) ([]domain.Session, error)
+	CreateSession(c *gin.Context, ds domain.Session) error
 }
 
 type ImpCrudSession struct {
@@ -21,8 +21,8 @@ func NewCrudSession(dbImp dbmongo.IDbSessionCrud) ICrudSession {
 	}
 }
 
-func (cs *ImpCrudSession) GetAll(c *gin.Context) ([]domain.Session, error) {
-	ses, err := cs.dbImp.GetAll(c)
+func (cs *ImpCrudSession) GetAllSessions(c *gin.Context) ([]domain.Session, error) {
+	ses, err := cs.dbImp.GetAllSessions(c)
 
 	if err != nil {
 		return nil, err
@@ -31,8 +31,8 @@ func (cs *ImpCrudSession) GetAll(c *gin.Context) ([]domain.Session, error) {
 	return ses, nil
 }
 
-func (cs *ImpCrudSession) Create(c *gin.Context, ses domain.Session) error {
-	err := cs.dbImp.Create(c, ses)
+func (cs *ImpCrudSession) CreateSession(c *gin.Context, ses domain.Session) error {
+	err := cs.dbImp.CreateSession(c, ses)
 
 	if err != nil {
 		return err

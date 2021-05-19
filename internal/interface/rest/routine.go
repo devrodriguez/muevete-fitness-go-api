@@ -27,7 +27,7 @@ func (rh *RoutineHand) CreateRoutine(c *gin.Context) {
 		return
 	}
 
-	if err := rh.uc.Create(c, r); err !=  nil {
+	if err := rh.uc.CreateRoutine(c, r); err !=  nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})
@@ -41,7 +41,7 @@ func (rh *RoutineHand) CreateRoutine(c *gin.Context) {
 
 func (rh *RoutineHand) GetAllRoutines(c *gin.Context) {
 
-	rs, err := rh.uc.GetAll(c)
+	rs, err := rh.uc.GetAllRoutines(c)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{

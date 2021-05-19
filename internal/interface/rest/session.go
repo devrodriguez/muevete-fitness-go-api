@@ -2,7 +2,7 @@ package rest
 
 import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/devrodriguez/muevete-fitness-go-api/internal/session"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/sessions"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -28,7 +28,7 @@ func (sh *SessionHand) CreateSession(c *gin.Context) {
 		return
 	}
 
-	if err := sh.uc.Create(c, session); err !=  nil {
+	if err := sh.uc.CreateSession(c, session); err !=  nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})
@@ -42,7 +42,7 @@ func (sh *SessionHand) CreateSession(c *gin.Context) {
 
 func (sh *SessionHand) GetAllSessions(c *gin.Context) {
 
-	ds, err := sh.uc.GetAll(c)
+	ds, err := sh.uc.GetAllSessions(c)
 
 	if err != nil {
 		c.JSON(http.StatusBadRequest, APIResponse{
