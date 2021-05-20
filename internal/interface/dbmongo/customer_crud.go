@@ -10,7 +10,7 @@ import (
 
 type IDbCustomerCrud interface {
 	GetAllCustomers(*gin.Context) ([]domain.Customer, error)
-	CreateCustomer(*gin.Context, domain.Customer) error
+	InsertCustomer(*gin.Context, domain.Customer) error
 }
 
 type ImpDbCustomerCrud struct {
@@ -46,7 +46,7 @@ func (cc *ImpDbCustomerCrud) GetAllCustomers(c *gin.Context) ([]domain.Customer,
 
 	return cs, nil
 }
-func (cc *ImpDbCustomerCrud) CreateCustomer(c *gin.Context, ses domain.Customer) error {
+func (cc *ImpDbCustomerCrud) InsertCustomer(c *gin.Context, ses domain.Customer) error {
 	docRef := cc.Client.Database("fitness").Collection("customers")
 
 	_, err := docRef.InsertOne(c, ses)

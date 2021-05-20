@@ -32,7 +32,7 @@ func (cc *ImpCategoryCrud) GetAllCategories(c *gin.Context) ([]domain.Category, 
 }
 
 func (cc *ImpCategoryCrud) CreateCategory(c *gin.Context, cat domain.Category) error {
-	err := cc.dbImp.CreateCategory(c, cat)
+	err := cc.dbImp.InsertCategory(c, cat)
 
 	if err != nil {
 		return err

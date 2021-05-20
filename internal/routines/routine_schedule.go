@@ -21,7 +21,7 @@ func NewRoutineSchedule(dbImp dbmongo.IDbRoutineSchedule) IRoutineSchedule {
 }
 
 func (cs *ImpRoutineSchedule) CreateSchedule(c *gin.Context, sch domain.RoutineSchedule) error {
-	err := cs.dbImp.CreateSchedule(c, sch)
+	err := cs.dbImp.InsertSchedule(c, sch)
 
 	if err != nil {
 		return err

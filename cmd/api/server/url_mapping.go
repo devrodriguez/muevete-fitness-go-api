@@ -7,6 +7,7 @@ import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/rest"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/routines"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/sessions"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/weeklies"
 	"net/http"
 
 	"github.com/devrodriguez/muevete-fitness-go-api/middlewares"
@@ -41,6 +42,11 @@ func MapUrls(server *gin.Engine, dbCli *mongo.Client) {
 	rsUc := routines.NewRoutineSchedule(rsRepo)
 	rsHand := rest.NewRoutineScheduleHand(rsUc)
 
+	// Weekly
+	wkRepo := dbmongo.NewDbWeeklyCrud(dbCli)
+	wkUc := weeklies.NewCustomerCrud(wkRepo)
+	wkHand := rest.NewWeeklyHand(wkUc)
+
 	pubRouter := server.Group("/public")
 	pubRouter.Use(middlewares.EnableCORS())
 	{
@@ -64,5 +70,8 @@ func MapUrls(server *gin.Engine, dbCli *mongo.Client) {
 
 		authRouter.GET("/customers", cusHand.GetAllCustomers)
 		authRouter.POST("/customers", cusHand.CreateCustomer)
+
+		authRouter.GET("/weeklies", wkHand.GetAllWeeklies)
+		authRouter.POST("/weeklies", wkHand.CreateRoutine)
 	}
 }

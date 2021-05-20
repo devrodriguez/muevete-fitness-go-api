@@ -27,7 +27,7 @@ func (rsh *RoutineScheduleHand) CreateRoutineSchedule(c *gin.Context) {
 		return
 	}
 
-	if err := rsh.uc.CreateSchedule(c, rs); err !=  nil {
+	if err := rsh.uc.CreateSchedule(c, rs); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})

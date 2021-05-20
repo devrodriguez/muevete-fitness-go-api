@@ -32,7 +32,7 @@ func (cs *ImpCrudRoutine) GetAllRoutines(c *gin.Context) ([]domain.Routine, erro
 }
 
 func (cs *ImpCrudRoutine) CreateRoutine(c *gin.Context, r domain.Routine) error {
-	err := cs.dbImp.CreateRoutine(c, r)
+	err := cs.dbImp.InsertRoutine(c, r)
 
 	if err != nil {
 		return err
@@ -40,4 +40,3 @@ func (cs *ImpCrudRoutine) CreateRoutine(c *gin.Context, r domain.Routine) error 
 
 	return nil
 }
-

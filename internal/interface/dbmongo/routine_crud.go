@@ -10,7 +10,7 @@ import (
 
 type IDbRoutineCrud interface {
 	GetAllRoutines(*gin.Context) ([]domain.Routine, error)
-	CreateRoutine(*gin.Context, domain.Routine) error
+	InsertRoutine(*gin.Context, domain.Routine) error
 }
 
 type ImpDbRoutineCrud struct {
@@ -47,7 +47,7 @@ func (rc *ImpDbRoutineCrud) GetAllRoutines(c *gin.Context) ([]domain.Routine, er
 	return rs, nil
 }
 
-func (rc *ImpDbRoutineCrud) CreateRoutine(c *gin.Context, r domain.Routine) error {
+func (rc *ImpDbRoutineCrud) InsertRoutine(c *gin.Context, r domain.Routine) error {
 	docRef := rc.Client.Database("fitness").Collection("routines")
 
 	_, err := docRef.InsertOne(c, r)

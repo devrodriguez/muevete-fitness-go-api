@@ -10,7 +10,7 @@ import (
 
 type IDbCategoryCrud interface {
 	GetAllCategories(*gin.Context) ([]domain.Category, error)
-	CreateCategory(*gin.Context, domain.Category) error
+	InsertCategory(*gin.Context, domain.Category) error
 }
 
 type ImpDbCategoryCrud struct {
@@ -46,7 +46,7 @@ func (cc *ImpDbCategoryCrud) GetAllCategories(c *gin.Context) ([]domain.Category
 
 	return cs, nil
 }
-func (cc *ImpDbCategoryCrud) CreateCategory(c *gin.Context, ses domain.Category) error {
+func (cc *ImpDbCategoryCrud) InsertCategory(c *gin.Context, ses domain.Category) error {
 	docRef := cc.Client.Database("fitness").Collection("categories")
 
 	_, err := docRef.InsertOne(c, ses)

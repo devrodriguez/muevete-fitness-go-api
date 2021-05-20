@@ -44,7 +44,7 @@ func (rh *CategoryHand) CreateCategory(c *gin.Context) {
 		return
 	}
 
-	if err := rh.uc.CreateCategory(c, cat); err !=  nil {
+	if err := rh.uc.CreateCategory(c, cat); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})
@@ -55,5 +55,3 @@ func (rh *CategoryHand) CreateCategory(c *gin.Context) {
 		Message: http.StatusText(http.StatusOK),
 	})
 }
-
-

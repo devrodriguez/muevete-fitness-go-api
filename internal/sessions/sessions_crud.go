@@ -32,7 +32,7 @@ func (cs *ImpCrudSession) GetAllSessions(c *gin.Context) ([]domain.Session, erro
 }
 
 func (cs *ImpCrudSession) CreateSession(c *gin.Context, ses domain.Session) error {
-	err := cs.dbImp.CreateSession(c, ses)
+	err := cs.dbImp.InsertSession(c, ses)
 
 	if err != nil {
 		return err

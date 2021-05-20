@@ -32,7 +32,7 @@ func (cs *ImpCrudCustomer) GetAllCustomers(c *gin.Context) ([]domain.Customer, e
 }
 
 func (cs *ImpCrudCustomer) CreateCustomer(c *gin.Context, ses domain.Customer) error {
-	err := cs.dbImp.CreateCustomer(c, ses)
+	err := cs.dbImp.InsertCustomer(c, ses)
 
 	if err != nil {
 		return err

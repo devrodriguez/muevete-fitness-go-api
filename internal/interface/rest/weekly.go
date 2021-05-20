@@ -2,32 +2,32 @@ package rest
 
 import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/devrodriguez/muevete-fitness-go-api/internal/routines"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/weeklies"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
 
-type RoutineHand struct {
-	uc routines.ICrudRoutine
+type WeeklyHand struct {
+	uc weeklies.IWeeklyCrud
 }
 
-func NewRoutineHand(uc routines.ICrudRoutine) RoutineHand {
-	return RoutineHand{
+func NewWeeklyHand(uc weeklies.IWeeklyCrud) WeeklyHand {
+	return WeeklyHand{
 		uc,
 	}
 }
 
-func (rh *RoutineHand) CreateRoutine(c *gin.Context) {
-	var r domain.Routine
+func (wh *WeeklyHand) CreateRoutine(c *gin.Context) {
+	var w domain.Weekly
 
-	if err := c.BindJSON(&r); err != nil {
+	if err := c.BindJSON(&w); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})
 		return
 	}
 
-	if err := rh.uc.CreateRoutine(c, r); err != nil {
+	if err := wh.uc.CreateWeekly(c, w); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})
@@ -39,19 +39,19 @@ func (rh *RoutineHand) CreateRoutine(c *gin.Context) {
 	})
 }
 
-func (rh *RoutineHand) GetAllRoutines(c *gin.Context) {
+func (wh *WeeklyHand) GetAllWeeklies(c *gin.Context) {
 
-	rs, err := rh.uc.GetAllRoutines(c)
+	ds, err := wh.uc.GetAllWeeklies(c)
 
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, APIResponse{
-			Message: http.StatusText(http.StatusInternalServerError),
+		c.JSON(http.StatusBadRequest, APIResponse{
+			Message: http.StatusText(http.StatusBadRequest),
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, APIResponse{
 		Message: http.StatusText(http.StatusOK),
-		Data:    rs,
+		Data:    ds,
 	})
 }

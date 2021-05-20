@@ -44,7 +44,7 @@ func (ch *CustomerHand) CreateCustomer(c *gin.Context) {
 		return
 	}
 
-	if err := ch.uc.CreateCustomer(c, cus); err !=  nil {
+	if err := ch.uc.CreateCustomer(c, cus); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})
@@ -55,5 +55,3 @@ func (ch *CustomerHand) CreateCustomer(c *gin.Context) {
 		Message: http.StatusText(http.StatusOK),
 	})
 }
-
-

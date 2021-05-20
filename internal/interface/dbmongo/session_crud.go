@@ -10,7 +10,7 @@ import (
 
 type IDbSessionCrud interface {
 	GetAllSessions(*gin.Context) ([]domain.Session, error)
-	CreateSession(*gin.Context, domain.Session) error
+	InsertSession(*gin.Context, domain.Session) error
 }
 
 type ImpDbSessionCrud struct {
@@ -47,7 +47,7 @@ func (sc *ImpDbSessionCrud) GetAllSessions(c *gin.Context) ([]domain.Session, er
 	return sess, nil
 }
 
-func (sc *ImpDbSessionCrud) CreateSession(c *gin.Context, ses domain.Session) error {
+func (sc *ImpDbSessionCrud) InsertSession(c *gin.Context, ses domain.Session) error {
 	docRef := sc.Client.Database("fitness").Collection("sessions")
 
 	_, err := docRef.InsertOne(c, ses)

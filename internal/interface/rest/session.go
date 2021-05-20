@@ -7,7 +7,6 @@ import (
 	"net/http"
 )
 
-
 type SessionHand struct {
 	uc sessions.ICrudSession
 }
@@ -28,7 +27,7 @@ func (sh *SessionHand) CreateSession(c *gin.Context) {
 		return
 	}
 
-	if err := sh.uc.CreateSession(c, session); err !=  nil {
+	if err := sh.uc.CreateSession(c, session); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
 		})
@@ -53,6 +52,6 @@ func (sh *SessionHand) GetAllSessions(c *gin.Context) {
 
 	c.JSON(http.StatusOK, APIResponse{
 		Message: http.StatusText(http.StatusOK),
-		Data: ds,
+		Data:    ds,
 	})
 }
