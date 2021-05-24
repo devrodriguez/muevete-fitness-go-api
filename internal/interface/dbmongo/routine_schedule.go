@@ -7,7 +7,7 @@ import (
 )
 
 type IDbRoutineSchedule interface {
-	InsertSchedule(*gin.Context, domain.RoutineSchedule) error
+	SaveRoutineSchedule(*gin.Context, domain.RoutineSchedule) error
 }
 
 type ImpDbRoutineSchedule struct {
@@ -20,7 +20,7 @@ func NewDbRoutineSchedule(cli *mongo.Client) IDbRoutineSchedule {
 	}
 }
 
-func (re *ImpDbRoutineSchedule) InsertSchedule(c *gin.Context, sch domain.RoutineSchedule) error {
+func (re *ImpDbRoutineSchedule) SaveRoutineSchedule(c *gin.Context, sch domain.RoutineSchedule) error {
 	docRef := re.Client.Database("fitness").Collection("routine_schedule")
 
 	_, err := docRef.InsertOne(c, sch)

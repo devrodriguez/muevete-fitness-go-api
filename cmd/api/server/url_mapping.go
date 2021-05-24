@@ -22,6 +22,11 @@ func MapUrls(server *gin.Engine, dbCli *mongo.Client) {
 	sesUc := sessions.NewCrudSession(sesRepo)
 	sesHand := rest.NewSessionHand(sesUc)
 
+	// Session Schedule
+	ssRepo := dbmongo.NewDbSessionSchedule(dbCli)
+	ssUc := sessions.NewSessionSchedule(ssRepo)
+	ssHand := rest.NewSessionScheduleHand(ssUc)
+
 	// Routines
 	rtRepo := dbmongo.NewDbRoutineCrud(dbCli)
 	rtUc := routines.NewCrudRoutine(rtRepo)
@@ -60,6 +65,7 @@ func MapUrls(server *gin.Engine, dbCli *mongo.Client) {
 	{
 		authRouter.GET("/sessions", sesHand.GetAllSessions)
 		authRouter.POST("/sessions", sesHand.CreateSession)
+		authRouter.GET("/sessions/schedule", ssHand.GetSessionsSchedule)
 
 		authRouter.GET("/routines", rtHand.GetAllRoutines)
 		authRouter.POST("/routines", rtHand.CreateRoutine)
