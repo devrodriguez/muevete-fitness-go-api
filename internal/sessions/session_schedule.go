@@ -7,7 +7,8 @@ import (
 )
 
 type ISessionSchedule interface {
-	GetScheduleSessions(c *gin.Context) ([]domain.ScheduleSession, error)
+	GetSessionsSchedule(*gin.Context) ([]domain.SessionSchedule, error)
+	CreateSessionsSchedule(*gin.Context, domain.SessionScheduleMod) error
 }
 
 type ImpSessionSchedule struct {
@@ -20,7 +21,7 @@ func NewSessionSchedule(dbImp dbmongo.IDbSessionSchedule) ISessionSchedule {
 	}
 }
 
-func (cs *ImpSessionSchedule) GetScheduleSessions(c *gin.Context) ([]domain.ScheduleSession, error) {
+func (cs *ImpSessionSchedule) GetSessionsSchedule(c *gin.Context) ([]domain.SessionSchedule, error) {
 	schs, err := cs.dbImp.GetSessionSchedule(c)
 
 	if err != nil {
@@ -28,5 +29,13 @@ func (cs *ImpSessionSchedule) GetScheduleSessions(c *gin.Context) ([]domain.Sche
 	}
 
 	return schs, err
+}
+
+func (cs *ImpSessionSchedule) CreateSessionsSchedule(c *gin.Context, ss domain.SessionScheduleMod) error {
+	if err := cs.dbImp.SaveSessionSchedule(c, ss); err != nil {
+		return err
+	}
+
+	return nil
 }
 

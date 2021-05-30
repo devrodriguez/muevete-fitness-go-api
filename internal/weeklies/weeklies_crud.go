@@ -7,7 +7,7 @@ import (
 )
 
 type IWeeklyCrud interface {
-	CreateWeekly(c *gin.Context, wk domain.Weekly) error
+	CreateWeekly(c *gin.Context, wk domain.WeeklyMod) error
 	GetAllWeeklies(c *gin.Context) ([]domain.Weekly, error)
 }
 
@@ -21,16 +21,6 @@ func NewCustomerCrud(dbImp dbmongo.IDbWeeklyCrud) IWeeklyCrud {
 	}
 }
 
-func (wc *ImpWeeklyCrud) CreateWeekly(c *gin.Context, wk domain.Weekly) error {
-	err := wc.dbImp.InsertWeekly(c, wk)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (wc *ImpWeeklyCrud) GetAllWeeklies(c *gin.Context) ([]domain.Weekly, error) {
 	wks, err := wc.dbImp.FindWeekly(c)
 
@@ -39,4 +29,14 @@ func (wc *ImpWeeklyCrud) GetAllWeeklies(c *gin.Context) ([]domain.Weekly, error)
 	}
 
 	return wks, nil
+}
+
+func (wc *ImpWeeklyCrud) CreateWeekly(c *gin.Context, wk domain.WeeklyMod) error {
+	err := wc.dbImp.SaveWeekly(c, wk)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

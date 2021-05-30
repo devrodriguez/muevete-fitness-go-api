@@ -7,7 +7,8 @@ import (
 )
 
 type IRoutineSchedule interface {
-	CreateSchedule(c *gin.Context, ds domain.RoutineSchedule) error
+	GetSchedule(*gin.Context) ([]domain.RoutineSchedule, error)
+	CreateSchedule(*gin.Context, domain.RoutineScheduleMod) error
 }
 
 type ImpRoutineSchedule struct {
@@ -20,8 +21,18 @@ func NewRoutineSchedule(dbImp dbmongo.IDbRoutineSchedule) IRoutineSchedule {
 	}
 }
 
-func (cs *ImpRoutineSchedule) CreateSchedule(c *gin.Context, sch domain.RoutineSchedule) error {
-	err := cs.dbImp.SaveRoutineSchedule(c, sch)
+func (rs *ImpRoutineSchedule) GetSchedule(c *gin.Context) ([]domain.RoutineSchedule, error) {
+	rss, err := rs.dbImp.FindRoutineSchedule(c)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return rss, nil
+}
+
+func (rs *ImpRoutineSchedule) CreateSchedule(c *gin.Context, sch domain.RoutineScheduleMod) error {
+	err := rs.dbImp.SaveRoutineSchedule(c, sch)
 
 	if err != nil {
 		return err

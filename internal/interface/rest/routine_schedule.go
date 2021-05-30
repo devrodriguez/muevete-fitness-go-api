@@ -17,8 +17,24 @@ func NewRoutineScheduleHand(uc routines.IRoutineSchedule) RoutineScheduleHand {
 	}
 }
 
+func (rsh * RoutineScheduleHand) GetRoutineSchedule(c *gin.Context) {
+	rss, err := rsh.uc.GetSchedule(c)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, APIResponse{
+			Message: http.StatusText(http.StatusInternalServerError),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, APIResponse{
+		Message: http.StatusText(http.StatusOK),
+		Data:    rss,
+	})
+}
+
 func (rsh *RoutineScheduleHand) CreateRoutineSchedule(c *gin.Context) {
-	var rs domain.RoutineSchedule
+	var rs domain.RoutineScheduleMod
 
 	if err := c.BindJSON(&rs); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{

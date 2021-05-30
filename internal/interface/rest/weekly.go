@@ -18,7 +18,7 @@ func NewWeeklyHand(uc weeklies.IWeeklyCrud) WeeklyHand {
 }
 
 func (wh *WeeklyHand) CreateRoutine(c *gin.Context) {
-	var w domain.Weekly
+	var w domain.WeeklyMod
 
 	if err := c.BindJSON(&w); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{

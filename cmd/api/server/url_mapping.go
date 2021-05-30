@@ -66,9 +66,11 @@ func MapUrls(server *gin.Engine, dbCli *mongo.Client) {
 		authRouter.GET("/sessions", sesHand.GetAllSessions)
 		authRouter.POST("/sessions", sesHand.CreateSession)
 		authRouter.GET("/sessions/schedule", ssHand.GetSessionsSchedule)
+		authRouter.POST("/sessions/schedule", ssHand.CreateSessionSchedule)
 
 		authRouter.GET("/routines", rtHand.GetAllRoutines)
 		authRouter.POST("/routines", rtHand.CreateRoutine)
+		authRouter.GET("/routines/schedule", rsHand.GetRoutineSchedule)
 		authRouter.POST("/routines/schedule", rsHand.CreateRoutineSchedule)
 
 		authRouter.GET("/categories", catHand.GetAllCategories)

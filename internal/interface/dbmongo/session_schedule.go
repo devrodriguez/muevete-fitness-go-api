@@ -8,7 +8,8 @@ import (
 )
 
 type IDbSessionSchedule interface {
-	GetSessionSchedule(c *gin.Context) ([]domain.ScheduleSession, error)
+	GetSessionSchedule(c *gin.Context) ([]domain.SessionSchedule, error)
+	SaveSessionSchedule(c * gin.Context, session domain.SessionScheduleMod) error
 }
 
 type ImpDbSessionSchedule struct {
@@ -21,11 +22,10 @@ func NewDbSessionSchedule(cli *mongo.Client) IDbSessionSchedule {
 	}
 }
 
-func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.ScheduleSession, error) {
-	var sess []domain.ScheduleSession
+func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.SessionSchedule, error) {
+	var sess []domain.SessionSchedule
 
-	//findOpt := options.Find()
-	docRef := ss.Client.Database("fitness").Collection("routine_schedule")
+	docRef := ss.Client.Database("fitness").Collection("session_schedule")
 	lookCust := bson.D{
 		{"$lookup", bson.D{
 			{"from", "customers"},
@@ -64,15 +64,67 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Sch
 			{"path", "$weekly.session"},
 			{"preserveNullAndEmptyArrays", false},
 		}}}
-	cursor, err := docRef.Aggregate(c, mongo.Pipeline{lookCust, unwindCust, lookWeek, unwindWeek, lookSes, unwindSes})
-	// cursor, err := docRef.Find(c, bson.D{{}}, findOpt)
+
+	lookRouSch := bson.D{
+		{"$lookup", bson.D{
+			{"from", "routine_schedule"},
+			{"localField", "weekly.routine_schedule"},
+			{"foreignField", "_id"},
+			{"as", "weekly.routine_schedule"},
+		}}}
+	unwindRouSch := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$weekly.routine_schedule"},
+			{"preserveNullAndEmptyArrays", false},
+		}}}
+
+	lookRouSchRou := bson.D{
+		{"$lookup", bson.D{
+			{"from", "routines"},
+			{"localField", "weekly.routine_schedule.routine"},
+			{"foreignField", "_id"},
+			{"as", "weekly.routine_schedule.routine"},
+		}}}
+	unwindRouSchRou := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$weekly.routine_schedule.routine"},
+			{"preserveNullAndEmptyArrays", false},
+		}}}
+
+	lookRouSchWkd := bson.D{
+		{"$lookup", bson.D{
+			{"from", "week_days"},
+			{"localField", "weekly.routine_schedule.week_days"},
+			{"foreignField", "_id"},
+			{"as", "weekly.routine_schedule.week_days"},
+		}}}
+	unwindRouSchWkd := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$weekly.routine_schedule.week_days"},
+			{"preserveNullAndEmptyArrays", false},
+		}}}
+
+	cursor, err := docRef.Aggregate(c, mongo.Pipeline{
+		lookCust,
+		unwindCust,
+		lookWeek,
+		unwindWeek,
+		lookSes,
+		unwindSes,
+		lookRouSch,
+		unwindRouSch,
+		lookRouSchRou,
+		unwindRouSchRou,
+		lookRouSchWkd,
+		unwindRouSchWkd,
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
 	for cursor.Next(c) {
-		var ses domain.ScheduleSession
+		var ses domain.SessionSchedule
 
 		if err := cursor.Decode(&ses); err != nil {
 			panic(err)
@@ -82,5 +134,17 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Sch
 	}
 
 	return sess, nil
+}
+
+func (ss *ImpDbSessionSchedule) SaveSessionSchedule(c * gin.Context, sess domain.SessionScheduleMod) error {
+	docRef := ss.Client.Database("fitness").Collection("session_schedule")
+
+	_, err := docRef.InsertOne(c, sess)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 

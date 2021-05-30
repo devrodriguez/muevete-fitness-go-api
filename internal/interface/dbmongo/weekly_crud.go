@@ -9,7 +9,7 @@ import (
 )
 
 type IDbWeeklyCrud interface {
-	InsertWeekly(*gin.Context, domain.Weekly) error
+	SaveWeekly(*gin.Context, domain.WeeklyMod) error
 	FindWeekly(*gin.Context) ([]domain.Weekly, error)
 }
 
@@ -23,7 +23,7 @@ func NewDbWeeklyCrud(cli *mongo.Client) IDbWeeklyCrud {
 	}
 }
 
-func (re *ImpDbWeeklyCrud) InsertWeekly(c *gin.Context, wk domain.Weekly) error {
+func (re *ImpDbWeeklyCrud) SaveWeekly(c *gin.Context, wk domain.WeeklyMod) error {
 	docRef := re.Client.Database("fitness").Collection("weeklies")
 
 	_, err := docRef.InsertOne(c, wk)
