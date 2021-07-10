@@ -12,7 +12,6 @@ import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/customers"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -40,7 +39,7 @@ func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCu
 	cusRepo := dbmongo.NewDbCustomerCrud(client)
 	cusUc := customers.NewCustomerCrud(cusRepo)
 
-	if err := cusUc.CreateCustomer(&gin.Context{}, customer); err != nil {
+	if err := cusUc.CreateCustomer(ctx, customer); err != nil {
 		return nil, err
 	}
 
@@ -61,7 +60,7 @@ func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error
 	cusRepo := dbmongo.NewDbCustomerCrud(client)
 	cusUc := customers.NewCustomerCrud(cusRepo)
 
-	cust, _ := cusUc.GetAllCustomers(&gin.Context{})
+	cust, _ := cusUc.GetAllCustomers(ctx)
 
 	for _, c := range cust {
 		cust := model.Customer{

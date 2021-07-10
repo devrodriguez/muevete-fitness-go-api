@@ -1,5 +1,6 @@
 {
     "scripts": {
-        "gorun": "go run ./cmd/api/main.go"
+        "gorun": "go run ./cmd/api/main.go",
+        "graphrun": "go run ./cmd/go-graphql/server.go"
     }
 }

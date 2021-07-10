@@ -1,16 +1,17 @@
 package dbmongo
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type IDbCustomerCrud interface {
-	GetAllCustomers(*gin.Context) ([]domain.Customer, error)
-	InsertCustomer(*gin.Context, domain.Customer) error
+	GetAllCustomers(context.Context) ([]domain.Customer, error)
+	InsertCustomer(context.Context, domain.Customer) error
 }
 
 type ImpDbCustomerCrud struct {
@@ -23,7 +24,7 @@ func NewDbCustomerCrud(cli *mongo.Client) IDbCustomerCrud {
 	}
 }
 
-func (cc *ImpDbCustomerCrud) GetAllCustomers(c *gin.Context) ([]domain.Customer, error) {
+func (cc *ImpDbCustomerCrud) GetAllCustomers(c context.Context) ([]domain.Customer, error) {
 	var cs []domain.Customer
 
 	findOpt := options.Find()
@@ -46,7 +47,7 @@ func (cc *ImpDbCustomerCrud) GetAllCustomers(c *gin.Context) ([]domain.Customer,
 
 	return cs, nil
 }
-func (cc *ImpDbCustomerCrud) InsertCustomer(c *gin.Context, ses domain.Customer) error {
+func (cc *ImpDbCustomerCrud) InsertCustomer(c context.Context, ses domain.Customer) error {
 	docRef := cc.Client.Database("fitness").Collection("customers")
 
 	_, err := docRef.InsertOne(c, ses)

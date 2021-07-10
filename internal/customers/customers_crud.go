@@ -1,14 +1,15 @@
 package customers
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
-	"github.com/gin-gonic/gin"
 )
 
 type ICustomerCrud interface {
-	GetAllCustomers(c *gin.Context) ([]domain.Customer, error)
-	CreateCustomer(c *gin.Context, ds domain.Customer) error
+	GetAllCustomers(c context.Context) ([]domain.Customer, error)
+	CreateCustomer(c context.Context, ds domain.Customer) error
 }
 
 type ImpCrudCustomer struct {
@@ -21,7 +22,7 @@ func NewCustomerCrud(dbImp dbmongo.IDbCustomerCrud) ICustomerCrud {
 	}
 }
 
-func (cs *ImpCrudCustomer) GetAllCustomers(c *gin.Context) ([]domain.Customer, error) {
+func (cs *ImpCrudCustomer) GetAllCustomers(c context.Context) ([]domain.Customer, error) {
 	ses, err := cs.dbImp.GetAllCustomers(c)
 
 	if err != nil {
@@ -31,7 +32,7 @@ func (cs *ImpCrudCustomer) GetAllCustomers(c *gin.Context) ([]domain.Customer, e
 	return ses, nil
 }
 
-func (cs *ImpCrudCustomer) CreateCustomer(c *gin.Context, ses domain.Customer) error {
+func (cs *ImpCrudCustomer) CreateCustomer(c context.Context, ses domain.Customer) error {
 	err := cs.dbImp.InsertCustomer(c, ses)
 
 	if err != nil {
