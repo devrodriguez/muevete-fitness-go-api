@@ -10,6 +10,7 @@ import (
 
 	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph/generated"
 	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph/model"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/categories"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/customers"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
@@ -76,6 +77,32 @@ func (r *mutationResolver) CreateRoutine(ctx context.Context, input model.NewRou
 	return &newRoutine, nil
 }
 
+func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error) {
+	var category domain.Category
+	var newCategory model.Category
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	category.Name = input.Name
+
+	newCategory.Name = input.Name
+
+	catRepo := dbmongo.NewDbCategoryCrud(client)
+	catUc := categories.NewCategoryCrud(catRepo)
+
+	if err := catUc.CreateCategory(ctx, category); err != nil {
+		return nil, err
+	}
+
+	return &newCategory, nil
+}
+
 func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
 	var qCustomers = make([]*model.Customer, 0, 10)
 
@@ -135,6 +162,35 @@ func (r *queryResolver) Routines(ctx context.Context) ([]*model.Routine, error) 
 	}
 
 	return qRoutines, nil
+}
+
+func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, error) {
+	var qCategories = make([]*model.Category, 0, 10)
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	catRepo := dbmongo.NewDbCategoryCrud(client)
+	catUc := categories.NewCategoryCrud(catRepo)
+
+	data, err := catUc.GetAllCategories(ctx)
+	if err != nil {
+		return nil, errors.New("error getting categories")
+	}
+
+	for _, r := range data {
+		catItem := model.Category{
+			Name: r.Name,
+		}
+		qCategories = append(qCategories, &catItem)
+	}
+
+	return qCategories, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

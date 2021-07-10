@@ -11,9 +11,15 @@ type Routine {
     description: String!
 }
 
+type Category {
+    id: ID!
+    name: String!
+}
+
 type Query {
     customers: [Customer!]!
     routines: [Routine!]!
+    categories: [Category!]
 }
 
 input NewCustomer {
@@ -27,7 +33,12 @@ input NewRoutine {
     description: String!
 }
 
+input NewCategory {
+    name: String!
+}
+
 type Mutation {
     createCustomer(input: NewCustomer!): Customer!
     createRoutine(input: NewRoutine!): Routine!
+    createCategory(input: NewCategory!): Category!
 }

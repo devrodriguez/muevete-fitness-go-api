@@ -2,11 +2,20 @@
 
 package model
 
+type Category struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+}
+
 type Customer struct {
 	ID       string `json:"id"`
 	Name     string `json:"name"`
 	LastName string `json:"lastName"`
 	Email    string `json:"email"`
+}
+
+type NewCategory struct {
+	Name string `json:"name"`
 }
 
 type NewCustomer struct {

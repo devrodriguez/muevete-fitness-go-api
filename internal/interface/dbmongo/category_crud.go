@@ -1,16 +1,18 @@
 package dbmongo
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/gin-gonic/gin"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type IDbCategoryCrud interface {
-	GetAllCategories(*gin.Context) ([]domain.Category, error)
-	InsertCategory(*gin.Context, domain.Category) error
+	GetAllCategories(context.Context) ([]domain.Category, error)
+	InsertCategory(context.Context, domain.Category) error
 }
 
 type ImpDbCategoryCrud struct {
@@ -23,7 +25,7 @@ func NewDbCategoryCrud(cli *mongo.Client) IDbCategoryCrud {
 	}
 }
 
-func (cc *ImpDbCategoryCrud) GetAllCategories(c *gin.Context) ([]domain.Category, error) {
+func (cc *ImpDbCategoryCrud) GetAllCategories(c context.Context) ([]domain.Category, error) {
 	var cs []domain.Category
 
 	findOpt := options.Find()
@@ -46,7 +48,7 @@ func (cc *ImpDbCategoryCrud) GetAllCategories(c *gin.Context) ([]domain.Category
 
 	return cs, nil
 }
-func (cc *ImpDbCategoryCrud) InsertCategory(c *gin.Context, ses domain.Category) error {
+func (cc *ImpDbCategoryCrud) InsertCategory(c context.Context, ses domain.Category) error {
 	docRef := cc.Client.Database("fitness").Collection("categories")
 
 	_, err := docRef.InsertOne(c, ses)
