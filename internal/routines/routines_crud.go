@@ -1,14 +1,15 @@
 package routines
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
-	"github.com/gin-gonic/gin"
 )
 
 type ICrudRoutine interface {
-	GetAllRoutines(c *gin.Context) ([]domain.Routine, error)
-	CreateRoutine(c *gin.Context, ds domain.Routine) error
+	GetAllRoutines(c context.Context) ([]domain.Routine, error)
+	CreateRoutine(c context.Context, ds domain.Routine) error
 }
 
 type ImpCrudRoutine struct {
@@ -21,7 +22,7 @@ func NewCrudRoutine(dbImp dbmongo.IDbRoutineCrud) ICrudRoutine {
 	}
 }
 
-func (cs *ImpCrudRoutine) GetAllRoutines(c *gin.Context) ([]domain.Routine, error) {
+func (cs *ImpCrudRoutine) GetAllRoutines(c context.Context) ([]domain.Routine, error) {
 	rs, err := cs.dbImp.GetAllRoutines(c)
 
 	if err != nil {
@@ -31,7 +32,7 @@ func (cs *ImpCrudRoutine) GetAllRoutines(c *gin.Context) ([]domain.Routine, erro
 	return rs, nil
 }
 
-func (cs *ImpCrudRoutine) CreateRoutine(c *gin.Context, r domain.Routine) error {
+func (cs *ImpCrudRoutine) CreateRoutine(c context.Context, r domain.Routine) error {
 	err := cs.dbImp.InsertRoutine(c, r)
 
 	if err != nil {

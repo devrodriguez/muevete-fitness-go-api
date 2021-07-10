@@ -1,16 +1,17 @@
 package dbmongo
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type IDbRoutineCrud interface {
-	GetAllRoutines(*gin.Context) ([]domain.Routine, error)
-	InsertRoutine(*gin.Context, domain.Routine) error
+	GetAllRoutines(context.Context) ([]domain.Routine, error)
+	InsertRoutine(context.Context, domain.Routine) error
 }
 
 type ImpDbRoutineCrud struct {
@@ -23,7 +24,7 @@ func NewDbRoutineCrud(cli *mongo.Client) IDbRoutineCrud {
 	}
 }
 
-func (rc *ImpDbRoutineCrud) GetAllRoutines(c *gin.Context) ([]domain.Routine, error) {
+func (rc *ImpDbRoutineCrud) GetAllRoutines(c context.Context) ([]domain.Routine, error) {
 	var rs []domain.Routine
 
 	findOpt := options.Find()
@@ -47,7 +48,7 @@ func (rc *ImpDbRoutineCrud) GetAllRoutines(c *gin.Context) ([]domain.Routine, er
 	return rs, nil
 }
 
-func (rc *ImpDbRoutineCrud) InsertRoutine(c *gin.Context, r domain.Routine) error {
+func (rc *ImpDbRoutineCrud) InsertRoutine(c context.Context, r domain.Routine) error {
 	docRef := rc.Client.Database("fitness").Collection("routines")
 
 	_, err := docRef.InsertOne(c, r)

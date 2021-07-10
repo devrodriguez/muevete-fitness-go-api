@@ -5,8 +5,15 @@ type Customer {
     email: String!
 }
 
+type Routine {
+    id: ID!
+    name: String!
+    description: String!
+}
+
 type Query {
     customers: [Customer!]!
+    routines: [Routine!]!
 }
 
 input NewCustomer {
@@ -15,6 +22,12 @@ input NewCustomer {
     email: String!
 }
 
+input NewRoutine {
+    name: String!
+    description: String!
+}
+
 type Mutation {
     createCustomer(input: NewCustomer!): Customer!
+    createRoutine(input: NewRoutine!): Routine!
 }

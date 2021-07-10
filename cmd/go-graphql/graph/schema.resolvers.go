@@ -5,6 +5,7 @@ package graph
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph/generated"
@@ -12,6 +13,7 @@ import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/customers"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/routines"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -46,8 +48,36 @@ func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCu
 	return &inpCustomer, nil
 }
 
+func (r *mutationResolver) CreateRoutine(ctx context.Context, input model.NewRoutine) (*model.Routine, error) {
+	var routine domain.Routine
+	var newRoutine model.Routine
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	routine.Name = input.Name
+	routine.Description = input.Description
+
+	newRoutine.Name = input.Name
+	newRoutine.Description = input.Description
+
+	rouRepo := dbmongo.NewDbRoutineCrud(client)
+	rouUc := routines.NewCrudRoutine(rouRepo)
+
+	if err := rouUc.CreateRoutine(ctx, routine); err != nil {
+		return nil, err
+	}
+
+	return &newRoutine, nil
+}
+
 func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
-	var custs []*model.Customer
+	var qCustomers = make([]*model.Customer, 0, 10)
 
 	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
 	defer cancel()
@@ -60,18 +90,51 @@ func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error
 	cusRepo := dbmongo.NewDbCustomerCrud(client)
 	cusUc := customers.NewCustomerCrud(cusRepo)
 
-	cust, _ := cusUc.GetAllCustomers(ctx)
+	cust, err := cusUc.GetAllCustomers(ctx)
+	if err != nil {
+		return nil, errors.New("error getting customers")
+	}
 
 	for _, c := range cust {
-		cust := model.Customer{
+		cusItem := model.Customer{
 			Name:     c.Name,
 			LastName: c.LastName,
 			Email:    c.Email,
 		}
-		custs = append(custs, &cust)
+		qCustomers = append(qCustomers, &cusItem)
 	}
 
-	return custs, nil
+	return qCustomers, nil
+}
+
+func (r *queryResolver) Routines(ctx context.Context) ([]*model.Routine, error) {
+	var qRoutines = make([]*model.Routine, 0, 10)
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	rouRepo := dbmongo.NewDbRoutineCrud(client)
+	rouUc := routines.NewCrudRoutine(rouRepo)
+
+	data, err := rouUc.GetAllRoutines(ctx)
+	if err != nil {
+		return nil, errors.New("error getting routines")
+	}
+
+	for _, r := range data {
+		rouItem := model.Routine{
+			Name:        r.Name,
+			Description: r.Description,
+		}
+		qRoutines = append(qRoutines, &rouItem)
+	}
+
+	return qRoutines, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
