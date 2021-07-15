@@ -59,12 +59,14 @@ type ComplexityRoot struct {
 		CreateCategory func(childComplexity int, input model.NewCategory) int
 		CreateCustomer func(childComplexity int, input model.NewCustomer) int
 		CreateRoutine  func(childComplexity int, input model.NewRoutine) int
+		CreateSession  func(childComplexity int, input model.NewSession) int
 	}
 
 	Query struct {
 		Categories func(childComplexity int) int
 		Customers  func(childComplexity int) int
 		Routines   func(childComplexity int) int
+		Sessions   func(childComplexity int) int
 	}
 
 	Routine struct {
@@ -72,17 +74,27 @@ type ComplexityRoot struct {
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
 	}
+
+	Session struct {
+		FinalHour func(childComplexity int) int
+		ID        func(childComplexity int) int
+		Name      func(childComplexity int) int
+		Period    func(childComplexity int) int
+		StartHour func(childComplexity int) int
+	}
 }
 
 type MutationResolver interface {
+	CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error)
 	CreateCustomer(ctx context.Context, input model.NewCustomer) (*model.Customer, error)
 	CreateRoutine(ctx context.Context, input model.NewRoutine) (*model.Routine, error)
-	CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error)
+	CreateSession(ctx context.Context, input model.NewSession) (*model.Session, error)
 }
 type QueryResolver interface {
+	Categories(ctx context.Context) ([]*model.Category, error)
 	Customers(ctx context.Context) ([]*model.Customer, error)
 	Routines(ctx context.Context) ([]*model.Routine, error)
-	Categories(ctx context.Context) ([]*model.Category, error)
+	Sessions(ctx context.Context) ([]*model.Session, error)
 }
 
 type executableSchema struct {
@@ -178,6 +190,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateRoutine(childComplexity, args["input"].(model.NewRoutine)), true
 
+	case "Mutation.createSession":
+		if e.complexity.Mutation.CreateSession == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createSession_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateSession(childComplexity, args["input"].(model.NewSession)), true
+
 	case "Query.categories":
 		if e.complexity.Query.Categories == nil {
 			break
@@ -199,6 +223,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Routines(childComplexity), true
 
+	case "Query.sessions":
+		if e.complexity.Query.Sessions == nil {
+			break
+		}
+
+		return e.complexity.Query.Sessions(childComplexity), true
+
 	case "Routine.description":
 		if e.complexity.Routine.Description == nil {
 			break
@@ -219,6 +250,41 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Routine.Name(childComplexity), true
+
+	case "Session.finalHour":
+		if e.complexity.Session.FinalHour == nil {
+			break
+		}
+
+		return e.complexity.Session.FinalHour(childComplexity), true
+
+	case "Session.id":
+		if e.complexity.Session.ID == nil {
+			break
+		}
+
+		return e.complexity.Session.ID(childComplexity), true
+
+	case "Session.name":
+		if e.complexity.Session.Name == nil {
+			break
+		}
+
+		return e.complexity.Session.Name(childComplexity), true
+
+	case "Session.period":
+		if e.complexity.Session.Period == nil {
+			break
+		}
+
+		return e.complexity.Session.Period(childComplexity), true
+
+	case "Session.startHour":
+		if e.complexity.Session.StartHour == nil {
+			break
+		}
+
+		return e.complexity.Session.StartHour(childComplexity), true
 
 	}
 	return 0, false
@@ -284,7 +350,12 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 }
 
 var sources = []*ast.Source{
-	{Name: "graph/schema.graphqls", Input: `type Customer {
+	{Name: "graph/schema.graphqls", Input: `type Category {
+    id: ID!
+    name: String!
+}
+
+type Customer {
     id: ID!
     name: String!
     lastName: String!
@@ -297,15 +368,23 @@ type Routine {
     description: String!
 }
 
-type Category {
+type Session {
     id: ID!
     name: String!
+    startHour: String!
+    finalHour: String!
+    period: String!
 }
 
 type Query {
+    categories: [Category!]
     customers: [Customer!]!
     routines: [Routine!]!
-    categories: [Category!]
+    sessions: [Session!]!
+}
+
+input NewCategory {
+    name: String!
 }
 
 input NewCustomer {
@@ -319,14 +398,18 @@ input NewRoutine {
     description: String!
 }
 
-input NewCategory {
+input NewSession {
     name: String!
+    startHour: String!
+    finalHour: String!
+    period: String!
 }
 
 type Mutation {
+    createCategory(input: NewCategory!): Category!
     createCustomer(input: NewCustomer!): Customer!
     createRoutine(input: NewRoutine!): Routine!
-    createCategory(input: NewCategory!): Category!
+    createSession(input: NewSession!): Session!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -372,6 +455,21 @@ func (ec *executionContext) field_Mutation_createRoutine_args(ctx context.Contex
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
 		arg0, err = ec.unmarshalNNewRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewRoutine(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createSession_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewSession
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewSession(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -643,6 +741,48 @@ func (ec *executionContext) _Customer_email(ctx context.Context, field graphql.C
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Mutation_createCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createCategory_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateCategory(rctx, args["input"].(model.NewCategory))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Category)
+	fc.Result = res
+	return ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Mutation_createCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -727,7 +867,7 @@ func (ec *executionContext) _Mutation_createRoutine(ctx context.Context, field g
 	return ec.marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutine(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Mutation_createCategory(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Mutation_createSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -744,7 +884,7 @@ func (ec *executionContext) _Mutation_createCategory(ctx context.Context, field 
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Mutation_createCategory_args(ctx, rawArgs)
+	args, err := ec.field_Mutation_createSession_args(ctx, rawArgs)
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
@@ -752,7 +892,7 @@ func (ec *executionContext) _Mutation_createCategory(ctx context.Context, field 
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateCategory(rctx, args["input"].(model.NewCategory))
+		return ec.resolvers.Mutation().CreateSession(rctx, args["input"].(model.NewSession))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -764,9 +904,41 @@ func (ec *executionContext) _Mutation_createCategory(ctx context.Context, field 
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Category)
+	res := resTmp.(*model.Session)
 	fc.Result = res
-	return ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
+	return ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_categories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Categories(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Category)
+	fc.Result = res
+	return ec.marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategoryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -839,7 +1011,7 @@ func (ec *executionContext) _Query_routines(ctx context.Context, field graphql.C
 	return ec.marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Query_categories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -857,18 +1029,21 @@ func (ec *executionContext) _Query_categories(ctx context.Context, field graphql
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Categories(rctx)
+		return ec.resolvers.Query().Sessions(rctx)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Category)
+	res := resTmp.([]*model.Session)
 	fc.Result = res
-	return ec.marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategoryᚄ(ctx, field.Selections, res)
+	return ec.marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1031,6 +1206,181 @@ func (ec *executionContext) _Routine_description(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.Description, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_id(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_name(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Name, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_startHour(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.StartHour, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_finalHour(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.FinalHour, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Session_period(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Session",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Period, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -2218,6 +2568,50 @@ func (ec *executionContext) unmarshalInputNewRoutine(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewSession(ctx context.Context, obj interface{}) (model.NewSession, error) {
+	var it model.NewSession
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "name":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("name"))
+			it.Name, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "startHour":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("startHour"))
+			it.StartHour, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "finalHour":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("finalHour"))
+			it.FinalHour, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "period":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("period"))
+			it.Period, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -2315,6 +2709,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "createCategory":
+			out.Values[i] = ec._Mutation_createCategory(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "createCustomer":
 			out.Values[i] = ec._Mutation_createCustomer(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -2325,8 +2724,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
-		case "createCategory":
-			out.Values[i] = ec._Mutation_createCategory(ctx, field)
+		case "createSession":
+			out.Values[i] = ec._Mutation_createSession(ctx, field)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2356,6 +2755,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "categories":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_categories(ctx, field)
+				return res
+			})
 		case "customers":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -2384,7 +2794,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "categories":
+		case "sessions":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
 				defer func() {
@@ -2392,7 +2802,10 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 						ec.Error(ctx, ec.Recover(ctx, r))
 					}
 				}()
-				res = ec._Query_categories(ctx, field)
+				res = ec._Query_sessions(ctx, field)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
 				return res
 			})
 		case "__type":
@@ -2433,6 +2846,53 @@ func (ec *executionContext) _Routine(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "description":
 			out.Values[i] = ec._Routine_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sessionImplementors = []string{"Session"}
+
+func (ec *executionContext) _Session(ctx context.Context, sel ast.SelectionSet, obj *model.Session) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sessionImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Session")
+		case "id":
+			out.Values[i] = ec._Session_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "name":
+			out.Values[i] = ec._Session_name(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "startHour":
+			out.Values[i] = ec._Session_startHour(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "finalHour":
+			out.Values[i] = ec._Session_finalHour(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "period":
+			out.Values[i] = ec._Session_period(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -2802,6 +3262,11 @@ func (ec *executionContext) unmarshalNNewRoutine2githubᚗcomᚋdevrodriguezᚋm
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
+func (ec *executionContext) unmarshalNNewSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewSession(ctx context.Context, v interface{}) (model.NewSession, error) {
+	res, err := ec.unmarshalInputNewSession(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
 func (ec *executionContext) marshalNRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutine(ctx context.Context, sel ast.SelectionSet, v model.Routine) graphql.Marshaler {
 	return ec._Routine(ctx, sel, &v)
 }
@@ -2851,6 +3316,57 @@ func (ec *executionContext) marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmue
 		return graphql.Null
 	}
 	return ec._Routine(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model.Session) graphql.Marshaler {
+	return ec._Session(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Session) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model.Session) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Session(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {

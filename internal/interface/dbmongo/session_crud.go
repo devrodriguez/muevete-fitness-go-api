@@ -1,16 +1,17 @@
 package dbmongo
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type IDbSessionCrud interface {
-	GetAllSessions(*gin.Context) ([]domain.Session, error)
-	InsertSession(*gin.Context, domain.Session) error
+	GetAllSessions(context.Context) ([]domain.Session, error)
+	InsertSession(context.Context, domain.Session) error
 }
 
 type ImpDbSessionCrud struct {
@@ -23,7 +24,7 @@ func NewDbSessionCrud(cli *mongo.Client) IDbSessionCrud {
 	}
 }
 
-func (sc *ImpDbSessionCrud) GetAllSessions(c *gin.Context) ([]domain.Session, error) {
+func (sc *ImpDbSessionCrud) GetAllSessions(c context.Context) ([]domain.Session, error) {
 	var sess []domain.Session
 
 	findOpt := options.Find()
@@ -47,7 +48,7 @@ func (sc *ImpDbSessionCrud) GetAllSessions(c *gin.Context) ([]domain.Session, er
 	return sess, nil
 }
 
-func (sc *ImpDbSessionCrud) InsertSession(c *gin.Context, ses domain.Session) error {
+func (sc *ImpDbSessionCrud) InsertSession(c context.Context, ses domain.Session) error {
 	docRef := sc.Client.Database("fitness").Collection("sessions")
 
 	_, err := docRef.InsertOne(c, ses)

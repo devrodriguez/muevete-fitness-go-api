@@ -29,8 +29,23 @@ type NewRoutine struct {
 	Description string `json:"description"`
 }
 
+type NewSession struct {
+	Name      string `json:"name"`
+	StartHour string `json:"startHour"`
+	FinalHour string `json:"finalHour"`
+	Period    string `json:"period"`
+}
+
 type Routine struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`
 	Description string `json:"description"`
+}
+
+type Session struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	StartHour string `json:"startHour"`
+	FinalHour string `json:"finalHour"`
+	Period    string `json:"period"`
 }

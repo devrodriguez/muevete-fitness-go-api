@@ -1,3 +1,8 @@
+type Category {
+    id: ID!
+    name: String!
+}
+
 type Customer {
     id: ID!
     name: String!
@@ -11,15 +16,23 @@ type Routine {
     description: String!
 }
 
-type Category {
+type Session {
     id: ID!
     name: String!
+    startHour: String!
+    finalHour: String!
+    period: String!
 }
 
 type Query {
+    categories: [Category!]
     customers: [Customer!]!
     routines: [Routine!]!
-    categories: [Category!]
+    sessions: [Session!]!
+}
+
+input NewCategory {
+    name: String!
 }
 
 input NewCustomer {
@@ -33,12 +46,16 @@ input NewRoutine {
     description: String!
 }
 
-input NewCategory {
+input NewSession {
     name: String!
+    startHour: String!
+    finalHour: String!
+    period: String!
 }
 
 type Mutation {
+    createCategory(input: NewCategory!): Category!
     createCustomer(input: NewCustomer!): Customer!
     createRoutine(input: NewRoutine!): Routine!
-    createCategory(input: NewCategory!): Category!
+    createSession(input: NewSession!): Session!
 }

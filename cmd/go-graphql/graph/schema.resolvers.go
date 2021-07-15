@@ -15,9 +15,36 @@ import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/routines"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/sessions"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error) {
+	var category domain.Category
+	var newCategory model.Category
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	category.Name = input.Name
+
+	newCategory.Name = input.Name
+
+	catRepo := dbmongo.NewDbCategoryCrud(client)
+	catUc := categories.NewCategoryCrud(catRepo)
+
+	if err := catUc.CreateCategory(ctx, category); err != nil {
+		return nil, err
+	}
+
+	return &newCategory, nil
+}
 
 func (r *mutationResolver) CreateCustomer(ctx context.Context, input model.NewCustomer) (*model.Customer, error) {
 	var customer domain.Customer
@@ -77,9 +104,9 @@ func (r *mutationResolver) CreateRoutine(ctx context.Context, input model.NewRou
 	return &newRoutine, nil
 }
 
-func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCategory) (*model.Category, error) {
-	var category domain.Category
-	var newCategory model.Category
+func (r *mutationResolver) CreateSession(ctx context.Context, input model.NewSession) (*model.Session, error) {
+	var session domain.Session
+	var newSession model.Session
 
 	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
 	defer cancel()
@@ -89,18 +116,53 @@ func (r *mutationResolver) CreateCategory(ctx context.Context, input model.NewCa
 		panic(err)
 	}
 
-	category.Name = input.Name
+	session.Name = input.Name
+	session.Period = input.Period
+	session.StartHour = input.StartHour
+	session.FinalHour = input.FinalHour
 
-	newCategory.Name = input.Name
+	newSession.Name = input.Name
+	newSession.Period = input.Period
+	newSession.StartHour = input.StartHour
+	newSession.FinalHour = input.FinalHour
+
+	sesRepo := dbmongo.NewDbSessionCrud(client)
+	sesUc := sessions.NewCrudSession(sesRepo)
+
+	if err := sesUc.CreateSession(ctx, session); err != nil {
+		return nil, err
+	}
+
+	return &newSession, nil
+}
+
+func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, error) {
+	var qCategories = make([]*model.Category, 0, 10)
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
 
 	catRepo := dbmongo.NewDbCategoryCrud(client)
 	catUc := categories.NewCategoryCrud(catRepo)
 
-	if err := catUc.CreateCategory(ctx, category); err != nil {
-		return nil, err
+	data, err := catUc.GetAllCategories(ctx)
+	if err != nil {
+		return nil, errors.New("error getting categories")
 	}
 
-	return &newCategory, nil
+	for _, r := range data {
+		catItem := model.Category{
+			Name: r.Name,
+		}
+		qCategories = append(qCategories, &catItem)
+	}
+
+	return qCategories, nil
 }
 
 func (r *queryResolver) Customers(ctx context.Context) ([]*model.Customer, error) {
@@ -164,8 +226,8 @@ func (r *queryResolver) Routines(ctx context.Context) ([]*model.Routine, error) 
 	return qRoutines, nil
 }
 
-func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, error) {
-	var qCategories = make([]*model.Category, 0, 10)
+func (r *queryResolver) Sessions(ctx context.Context) ([]*model.Session, error) {
+	var qSessions = make([]*model.Session, 0, 10)
 
 	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
 	defer cancel()
@@ -175,22 +237,23 @@ func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, erro
 		panic(err)
 	}
 
-	catRepo := dbmongo.NewDbCategoryCrud(client)
-	catUc := categories.NewCategoryCrud(catRepo)
+	sesRepo := dbmongo.NewDbSessionCrud(client)
+	sesUc := sessions.NewCrudSession(sesRepo)
 
-	data, err := catUc.GetAllCategories(ctx)
-	if err != nil {
-		return nil, errors.New("error getting categories")
-	}
+	data, err := sesUc.GetAllSessions(ctx)
 
-	for _, r := range data {
-		catItem := model.Category{
-			Name: r.Name,
+	for _, v := range data {
+		sesItem := model.Session{
+			Name:      v.Name,
+			Period:    v.Period,
+			StartHour: v.StartHour,
+			FinalHour: v.FinalHour,
 		}
-		qCategories = append(qCategories, &catItem)
+
+		qSessions = append(qSessions, &sesItem)
 	}
 
-	return qCategories, nil
+	return qSessions, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.
