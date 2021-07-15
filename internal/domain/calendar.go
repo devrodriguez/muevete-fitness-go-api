@@ -1,7 +1,7 @@
 package domain
 
 type Calendar struct {
-	Session
-	Routine
+	Session       Session
+	Routine       Routine
 	DateScheduled string
 }

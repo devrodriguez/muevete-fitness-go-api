@@ -9,7 +9,7 @@ import (
 
 type IDbSessionSchedule interface {
 	GetSessionSchedule(c *gin.Context) ([]domain.SessionSchedule, error)
-	SaveSessionSchedule(c * gin.Context, session domain.SessionScheduleMod) error
+	SaveSessionSchedule(c *gin.Context, session domain.SessionScheduleMod) error
 }
 
 type ImpDbSessionSchedule struct {
@@ -27,17 +27,23 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 
 	docRef := ss.Client.Database("fitness").Collection("session_schedule")
 	lookCust := bson.D{
-		{"$lookup", bson.D{
-			{"from", "customers"},
-			{"localField", "customer"},
-			{"foreignField", "_id"},
-			{"as", "customer"},
-		}}}
+		{
+			"$lookup", bson.D{
+				{"from", "customers"},
+				{"localField", "customer"},
+				{"foreignField", "_id"},
+				{"as", "customer"},
+			},
+		},
+	}
 	unwindCust := bson.D{
-		{"$unwind", bson.D{
-			{"path", "$customer"},
-			{"preserveNullAndEmptyArrays", false},
-		}}}
+		{
+			"$unwind", bson.D{
+				{"path", "$customer"},
+				{"preserveNullAndEmptyArrays", false},
+			},
+		},
+	}
 
 	lookWeek := bson.D{
 		{"$lookup", bson.D{
@@ -136,7 +142,7 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 	return sess, nil
 }
 
-func (ss *ImpDbSessionSchedule) SaveSessionSchedule(c * gin.Context, sess domain.SessionScheduleMod) error {
+func (ss *ImpDbSessionSchedule) SaveSessionSchedule(c *gin.Context, sess domain.SessionScheduleMod) error {
 	docRef := ss.Client.Database("fitness").Collection("session_schedule")
 
 	_, err := docRef.InsertOne(c, sess)
@@ -147,4 +153,3 @@ func (ss *ImpDbSessionSchedule) SaveSessionSchedule(c * gin.Context, sess domain
 
 	return nil
 }
-

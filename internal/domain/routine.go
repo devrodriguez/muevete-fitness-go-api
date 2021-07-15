@@ -3,7 +3,7 @@ package domain
 import "go.mongodb.org/mongo-driver/bson/primitive"
 
 type Routine struct {
-	ID        primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	Name        string `bson:"name,omitempty" json:"name,omitempty"`
-	Description string `bson:"description,omitempty" json:"description,omitempty"`
+	ID          primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Name        string             `bson:"name,omitempty" json:"name,omitempty"`
+	Description string             `bson:"description,omitempty" json:"description,omitempty"`
 }
