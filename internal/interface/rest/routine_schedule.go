@@ -17,7 +17,7 @@ func NewRoutineScheduleHand(uc routines.IRoutineSchedule) RoutineScheduleHand {
 	}
 }
 
-func (rsh * RoutineScheduleHand) GetRoutineSchedule(c *gin.Context) {
+func (rsh *RoutineScheduleHand) GetRoutineSchedule(c *gin.Context) {
 	rss, err := rsh.uc.GetSchedule(c)
 
 	if err != nil {

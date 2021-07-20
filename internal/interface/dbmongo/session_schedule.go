@@ -1,15 +1,20 @@
 package dbmongo
 
 import (
+	"context"
+	"fmt"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type IDbSessionSchedule interface {
-	GetSessionSchedule(c *gin.Context) ([]domain.SessionSchedule, error)
-	SaveSessionSchedule(c *gin.Context, session domain.SessionScheduleMod) error
+	GetAllSessionSchedule(context.Context) ([]domain.SessionSchedule, error)
+	GetByWeekly(context.Context, string) (int64, error)
+	SaveSessionSchedule(context.Context, domain.SessionScheduleMod) error
 }
 
 type ImpDbSessionSchedule struct {
@@ -22,7 +27,7 @@ func NewDbSessionSchedule(cli *mongo.Client) IDbSessionSchedule {
 	}
 }
 
-func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.SessionSchedule, error) {
+func (ss *ImpDbSessionSchedule) GetAllSessionSchedule(ctx context.Context) ([]domain.SessionSchedule, error) {
 	var sess []domain.SessionSchedule
 
 	docRef := ss.Client.Database("fitness").Collection("session_schedule")
@@ -36,6 +41,7 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 			},
 		},
 	}
+
 	unwindCust := bson.D{
 		{
 			"$unwind", bson.D{
@@ -45,13 +51,13 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 		},
 	}
 
-	lookWeek := bson.D{
-		{"$lookup", bson.D{
-			{"from", "weeklies"},
-			{"localField", "weekly"},
-			{"foreignField", "_id"},
-			{"as", "weekly"},
-		}}}
+	lookWeek := bson.D{{"$lookup", bson.D{
+		{"from", "weeklies"},
+		{"localField", "weekly"},
+		{"foreignField", "_id"},
+		{"as", "weekly"},
+	}}}
+
 	unwindWeek := bson.D{
 		{"$unwind", bson.D{
 			{"path", "$weekly"},
@@ -65,6 +71,7 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 			{"foreignField", "_id"},
 			{"as", "weekly.session"},
 		}}}
+
 	unwindSes := bson.D{
 		{"$unwind", bson.D{
 			{"path", "$weekly.session"},
@@ -78,6 +85,7 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 			{"foreignField", "_id"},
 			{"as", "weekly.routine_schedule"},
 		}}}
+
 	unwindRouSch := bson.D{
 		{"$unwind", bson.D{
 			{"path", "$weekly.routine_schedule"},
@@ -91,6 +99,7 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 			{"foreignField", "_id"},
 			{"as", "weekly.routine_schedule.routine"},
 		}}}
+
 	unwindRouSchRou := bson.D{
 		{"$unwind", bson.D{
 			{"path", "$weekly.routine_schedule.routine"},
@@ -104,13 +113,14 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 			{"foreignField", "_id"},
 			{"as", "weekly.routine_schedule.week_days"},
 		}}}
+
 	unwindRouSchWkd := bson.D{
 		{"$unwind", bson.D{
 			{"path", "$weekly.routine_schedule.week_days"},
 			{"preserveNullAndEmptyArrays", false},
 		}}}
 
-	cursor, err := docRef.Aggregate(c, mongo.Pipeline{
+	cursor, err := docRef.Aggregate(ctx, mongo.Pipeline{
 		lookCust,
 		unwindCust,
 		lookWeek,
@@ -129,7 +139,7 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 		return nil, err
 	}
 
-	for cursor.Next(c) {
+	for cursor.Next(ctx) {
 		var ses domain.SessionSchedule
 
 		if err := cursor.Decode(&ses); err != nil {
@@ -142,10 +152,32 @@ func (ss *ImpDbSessionSchedule) GetSessionSchedule(c *gin.Context) ([]domain.Ses
 	return sess, nil
 }
 
-func (ss *ImpDbSessionSchedule) SaveSessionSchedule(c *gin.Context, sess domain.SessionScheduleMod) error {
-	docRef := ss.Client.Database("fitness").Collection("session_schedule")
+func (ss *ImpDbSessionSchedule) GetByWeekly(ctx context.Context, wkID string) (int64, error) {
+	docID, err := primitive.ObjectIDFromHex(wkID)
+	collRef := ss.Client.Database("fitness").Collection("session_schedule")
+	filter := bson.M{"weekly": docID}
+	nDocs, err := collRef.CountDocuments(ctx, filter)
+	if err != nil {
+		return 0, err
+	}
 
-	_, err := docRef.InsertOne(c, sess)
+	return nDocs, nil
+}
+
+func (ss *ImpDbSessionSchedule) SaveSessionSchedule(ctx context.Context, sess domain.SessionScheduleMod) error {
+
+	weeklyID, _ := primitive.ObjectIDFromHex(sess.WeeklyID.Hex())
+	custID, _ := primitive.ObjectIDFromHex(sess.CustomerID.Hex())
+	opts := options.Update().SetUpsert(true)
+	filter := bson.M{"weekly": weeklyID, "customer": custID}
+	data := bson.M{"$set": sess}
+	collRef := ss.Client.Database("fitness").Collection("session_schedule")
+
+	res, err := collRef.UpdateOne(ctx, filter, data, opts)
+
+	fmt.Printf("[updated:%d]\n", res.ModifiedCount)
+	fmt.Printf("[upserted:%d]\n", res.UpsertedCount)
+	fmt.Printf("[upserted_id:%v]\n", res.UpsertedID)
 
 	if err != nil {
 		return err

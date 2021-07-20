@@ -6,6 +6,7 @@ package graph
 import (
 	"context"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph/generated"
@@ -104,6 +105,10 @@ func (r *mutationResolver) CreateRoutine(ctx context.Context, input model.NewRou
 	return &newRoutine, nil
 }
 
+func (r *mutationResolver) CreateRoutineSchedule(ctx context.Context, input model.NewRoutineSchedule) (*model.RoutineSchedule, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *mutationResolver) CreateSession(ctx context.Context, input model.NewSession) (*model.Session, error) {
 	var session domain.Session
 	var newSession model.Session
@@ -134,6 +139,27 @@ func (r *mutationResolver) CreateSession(ctx context.Context, input model.NewSes
 	}
 
 	return &newSession, nil
+}
+
+func (r *mutationResolver) CreateWeekDay(ctx context.Context, input model.NewWeekDay) (*model.WeekDay, error) {
+	var weekDay model.WeekDay
+	var newWeekDay domain.WeekDay
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	_, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	weekDay.Name = input.Name
+	weekDay.NumericDay = input.NumericDay
+
+	newWeekDay.Name = input.Name
+	newWeekDay.NumericDay = input.NumericDay
+
+	return nil, nil
 }
 
 func (r *queryResolver) Categories(ctx context.Context) ([]*model.Category, error) {
@@ -254,6 +280,14 @@ func (r *queryResolver) Sessions(ctx context.Context) ([]*model.Session, error) 
 	}
 
 	return qSessions, nil
+}
+
+func (r *queryResolver) WeekDays(ctx context.Context) ([]*model.WeekDay, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) RoutineSchedules(ctx context.Context) ([]*model.RoutineSchedule, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

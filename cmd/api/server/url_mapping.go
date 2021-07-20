@@ -1,6 +1,8 @@
 package server
 
 import (
+	"net/http"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/categories"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/customers"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
@@ -8,7 +10,6 @@ import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/routines"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/sessions"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/weeklies"
-	"net/http"
 
 	"github.com/devrodriguez/muevete-fitness-go-api/middlewares"
 	"github.com/gin-gonic/gin"

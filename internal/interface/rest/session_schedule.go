@@ -1,10 +1,11 @@
 package rest
 
 import (
+	"net/http"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/sessions"
 	"github.com/gin-gonic/gin"
-	"net/http"
 )
 
 type SessionScheduleHand struct {
@@ -47,6 +48,7 @@ func (ssh *SessionScheduleHand) CreateSessionSchedule(c *gin.Context) {
 	if err := ssh.uc.CreateSessionsSchedule(c, newSsch); err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{
 			Message: http.StatusText(http.StatusInternalServerError),
+			Reason:  err.Error(),
 		})
 		return
 	}

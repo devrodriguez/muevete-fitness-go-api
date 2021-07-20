@@ -29,11 +29,21 @@ type NewRoutine struct {
 	Description string `json:"description"`
 }
 
+type NewRoutineSchedule struct {
+	Routine string `json:"routine"`
+	WeekDay string `json:"weekDay"`
+}
+
 type NewSession struct {
 	Name      string `json:"name"`
 	StartHour string `json:"startHour"`
 	FinalHour string `json:"finalHour"`
 	Period    string `json:"period"`
+}
+
+type NewWeekDay struct {
+	Name       string `json:"name"`
+	NumericDay int    `json:"numericDay"`
 }
 
 type Routine struct {
@@ -42,10 +52,22 @@ type Routine struct {
 	Description string `json:"description"`
 }
 
+type RoutineSchedule struct {
+	ID      string   `json:"id"`
+	Routine *Routine `json:"routine"`
+	WeekDay *WeekDay `json:"weekDay"`
+}
+
 type Session struct {
 	ID        string `json:"id"`
 	Name      string `json:"name"`
 	StartHour string `json:"startHour"`
 	FinalHour string `json:"finalHour"`
 	Period    string `json:"period"`
+}
+
+type WeekDay struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	NumericDay int    `json:"numericDay"`
 }

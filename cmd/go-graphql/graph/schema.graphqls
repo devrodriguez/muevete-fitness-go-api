@@ -16,6 +16,18 @@ type Routine {
     description: String!
 }
 
+type RoutineSchedule {
+    id: ID!
+    routine: Routine!
+    weekDay: WeekDay!
+}
+
+type WeekDay {
+    id: ID!
+    name: String!
+    numericDay: Int!
+}
+
 type Session {
     id: ID!
     name: String!
@@ -29,6 +41,8 @@ type Query {
     customers: [Customer!]!
     routines: [Routine!]!
     sessions: [Session!]!
+    weekDays: [WeekDay!]
+    routineSchedules: [RoutineSchedule!]
 }
 
 input NewCategory {
@@ -46,6 +60,11 @@ input NewRoutine {
     description: String!
 }
 
+input NewRoutineSchedule {
+    routine: String!
+    weekDay: String!
+}
+
 input NewSession {
     name: String!
     startHour: String!
@@ -53,9 +72,16 @@ input NewSession {
     period: String!
 }
 
+input NewWeekDay {
+    name: String!
+    numericDay: Int!
+}
+
 type Mutation {
     createCategory(input: NewCategory!): Category!
     createCustomer(input: NewCustomer!): Customer!
     createRoutine(input: NewRoutine!): Routine!
+    createRoutineSchedule(input: NewRoutineSchedule!): RoutineSchedule!
     createSession(input: NewSession!): Session!
+    createWeekDay(input: NewWeekDay!): WeekDay!
 }
