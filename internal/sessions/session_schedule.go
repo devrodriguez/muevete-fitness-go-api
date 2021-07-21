@@ -15,7 +15,7 @@ var errCapacity = errors.New("exced scheduled capacity")
 var errExist = errors.New("item exist")
 
 type ISessionSchedule interface {
-	GetSessionsSchedule(context.Context) ([]domain.SessionSchedule, error)
+	GetSchedule(context.Context) ([]domain.SessionSchedule, error)
 	CreateSessionsSchedule(context.Context, domain.SessionScheduleMod) error
 }
 
@@ -29,7 +29,7 @@ func NewSessionSchedule(dbImp dbmongo.IDbSessionSchedule) ISessionSchedule {
 	}
 }
 
-func (cs *ImpSessionSchedule) GetSessionsSchedule(c context.Context) ([]domain.SessionSchedule, error) {
+func (cs *ImpSessionSchedule) GetSchedule(c context.Context) ([]domain.SessionSchedule, error) {
 	schs, err := cs.dbImp.GetAllSessionSchedule(c)
 
 	if err != nil {

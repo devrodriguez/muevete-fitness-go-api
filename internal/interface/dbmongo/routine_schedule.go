@@ -1,15 +1,16 @@
 package dbmongo
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type IDbRoutineSchedule interface {
-	FindRoutineSchedule(*gin.Context) ([]domain.RoutineSchedule, error)
-	SaveRoutineSchedule(*gin.Context, domain.RoutineScheduleMod) error
+	FindRoutineSchedule(context.Context) ([]domain.RoutineSchedule, error)
+	SaveRoutineSchedule(context.Context, domain.RoutineScheduleMod) error
 }
 
 type ImpDbRoutineSchedule struct {
@@ -22,7 +23,7 @@ func NewDbRoutineSchedule(cli *mongo.Client) IDbRoutineSchedule {
 	}
 }
 
-func (re *ImpDbRoutineSchedule) FindRoutineSchedule(c *gin.Context) ([]domain.RoutineSchedule, error) {
+func (re *ImpDbRoutineSchedule) FindRoutineSchedule(c context.Context) ([]domain.RoutineSchedule, error) {
 	var rsch []domain.RoutineSchedule
 
 	docRef := re.Client.Database("fitness").Collection("routine_schedule")
@@ -79,7 +80,7 @@ func (re *ImpDbRoutineSchedule) FindRoutineSchedule(c *gin.Context) ([]domain.Ro
 	return rsch, nil
 }
 
-func (re *ImpDbRoutineSchedule) SaveRoutineSchedule(c *gin.Context, sch domain.RoutineScheduleMod) error {
+func (re *ImpDbRoutineSchedule) SaveRoutineSchedule(c context.Context, sch domain.RoutineScheduleMod) error {
 	docRef := re.Client.Database("fitness").Collection("routine_schedule")
 
 	_, err := docRef.InsertOne(c, sch)

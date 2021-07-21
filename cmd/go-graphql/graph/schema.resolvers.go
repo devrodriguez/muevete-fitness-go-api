@@ -6,7 +6,6 @@ package graph
 import (
 	"context"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph/generated"
@@ -17,6 +16,7 @@ import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/routines"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/sessions"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -106,7 +106,57 @@ func (r *mutationResolver) CreateRoutine(ctx context.Context, input model.NewRou
 }
 
 func (r *mutationResolver) CreateRoutineSchedule(ctx context.Context, input model.NewRoutineSchedule) (*model.RoutineSchedule, error) {
-	panic(fmt.Errorf("not implemented"))
+	var routineSch domain.RoutineScheduleMod
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	routineID, _ := primitive.ObjectIDFromHex(input.Routine)
+	weekDayID, _ := primitive.ObjectIDFromHex(input.Routine)
+
+	routineSch.Routine = routineID
+	routineSch.WeekDay = weekDayID
+
+	repo := dbmongo.NewDbRoutineSchedule(client)
+	uc := routines.NewRoutineSchedule(repo)
+
+	if err := uc.CreateSchedule(ctx, routineSch); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
+}
+
+func (r *mutationResolver) CreateSessionSchedule(ctx context.Context, input model.NewSessionSchedule) (*model.SessionSchedule, error) {
+	var sessionSch domain.SessionScheduleMod
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	customerID, _ := primitive.ObjectIDFromHex(input.Customer)
+	weeklyID, _ := primitive.ObjectIDFromHex(input.Weekly)
+
+	sessionSch.CustomerID = customerID
+	sessionSch.WeeklyID = weeklyID
+
+	repo := dbmongo.NewDbSessionSchedule(client)
+	uc := sessions.NewSessionSchedule(repo)
+
+	if err := uc.CreateSessionsSchedule(ctx, sessionSch); err != nil {
+		return nil, err
+	}
+
+	return nil, nil
 }
 
 func (r *mutationResolver) CreateSession(ctx context.Context, input model.NewSession) (*model.Session, error) {
@@ -152,6 +202,8 @@ func (r *mutationResolver) CreateWeekDay(ctx context.Context, input model.NewWee
 	if err != nil {
 		panic(err)
 	}
+
+	// TODO: implements service
 
 	weekDay.Name = input.Name
 	weekDay.NumericDay = input.NumericDay
@@ -263,10 +315,14 @@ func (r *queryResolver) Sessions(ctx context.Context) ([]*model.Session, error) 
 		panic(err)
 	}
 
-	sesRepo := dbmongo.NewDbSessionCrud(client)
-	sesUc := sessions.NewCrudSession(sesRepo)
+	repo := dbmongo.NewDbSessionCrud(client)
+	uc := sessions.NewCrudSession(repo)
 
-	data, err := sesUc.GetAllSessions(ctx)
+	data, err := uc.GetAllSessions(ctx)
+
+	if err != nil {
+		return nil, err
+	}
 
 	for _, v := range data {
 		sesItem := model.Session{
@@ -283,11 +339,113 @@ func (r *queryResolver) Sessions(ctx context.Context) ([]*model.Session, error) 
 }
 
 func (r *queryResolver) WeekDays(ctx context.Context) ([]*model.WeekDay, error) {
-	panic(fmt.Errorf("not implemented"))
+	var qWeekDays = make([]*model.WeekDay, 0, 10)
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	_, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	// TODO: implements service
+
+	return qWeekDays, nil
 }
 
 func (r *queryResolver) RoutineSchedules(ctx context.Context) ([]*model.RoutineSchedule, error) {
-	panic(fmt.Errorf("not implemented"))
+	var qRoutineSch = make([]*model.RoutineSchedule, 0, 10)
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	repo := dbmongo.NewDbRoutineSchedule(client)
+	uc := routines.NewRoutineSchedule(repo)
+
+	data, err := uc.GetSchedule(ctx)
+
+	for _, v := range data {
+		item := model.RoutineSchedule{
+			Routine: &model.Routine{
+				ID:          v.Routine.ID.Hex(),
+				Name:        v.Routine.Name,
+				Description: v.Routine.Description,
+			},
+			WeekDay: &model.WeekDay{
+				ID:         v.WeekDay.ID.Hex(),
+				Name:       v.WeekDay.Name,
+				NumericDay: v.WeekDay.NumericDay,
+			},
+		}
+
+		qRoutineSch = append(qRoutineSch, &item)
+	}
+
+	return qRoutineSch, nil
+}
+
+func (r *queryResolver) SessionSchedules(ctx context.Context) ([]*model.SessionSchedule, error) {
+	var qSessionSch = make([]*model.SessionSchedule, 0, 10)
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	repo := dbmongo.NewDbSessionSchedule(client)
+	uc := sessions.NewSessionSchedule(repo)
+
+	data, err := uc.GetSchedule(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range data {
+		item := model.SessionSchedule{
+			Customer: &model.Customer{
+				ID:       v.Customer.ID.Hex(),
+				Name:     v.Customer.Name,
+				LastName: v.Customer.LastName,
+				Email:    v.Customer.Email,
+			},
+			Weekly: &model.Weekly{
+				ID: v.Weekly.ID.Hex(),
+				Session: &model.Session{
+					ID:        v.Weekly.Session.ID.Hex(),
+					Name:      v.Session.Name,
+					StartHour: v.Session.StartHour,
+					FinalHour: v.Session.FinalHour,
+					Period:    v.Session.Period,
+				},
+				RoutineSchedule: &model.RoutineSchedule{
+					ID: v.RoutineSchedule.ID.Hex(),
+					Routine: &model.Routine{
+						Name:        v.RoutineSchedule.Routine.Name,
+						Description: v.RoutineSchedule.Routine.Description,
+					},
+					WeekDay: &model.WeekDay{
+						ID:         v.RoutineSchedule.WeekDay.ID.Hex(),
+						Name:       v.RoutineSchedule.WeekDay.Name,
+						NumericDay: v.RoutineSchedule.WeekDay.NumericDay,
+					},
+				},
+			},
+		}
+
+		qSessionSch = append(qSessionSch, &item)
+	}
+
+	return qSessionSch, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

@@ -1,14 +1,15 @@
 package routines
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
-	"github.com/gin-gonic/gin"
 )
 
 type IRoutineSchedule interface {
-	GetSchedule(*gin.Context) ([]domain.RoutineSchedule, error)
-	CreateSchedule(*gin.Context, domain.RoutineScheduleMod) error
+	GetSchedule(context.Context) ([]domain.RoutineSchedule, error)
+	CreateSchedule(context.Context, domain.RoutineScheduleMod) error
 }
 
 type ImpRoutineSchedule struct {
@@ -21,7 +22,7 @@ func NewRoutineSchedule(dbImp dbmongo.IDbRoutineSchedule) IRoutineSchedule {
 	}
 }
 
-func (rs *ImpRoutineSchedule) GetSchedule(c *gin.Context) ([]domain.RoutineSchedule, error) {
+func (rs *ImpRoutineSchedule) GetSchedule(c context.Context) ([]domain.RoutineSchedule, error) {
 	rss, err := rs.dbImp.FindRoutineSchedule(c)
 
 	if err != nil {
@@ -31,7 +32,7 @@ func (rs *ImpRoutineSchedule) GetSchedule(c *gin.Context) ([]domain.RoutineSched
 	return rss, nil
 }
 
-func (rs *ImpRoutineSchedule) CreateSchedule(c *gin.Context, sch domain.RoutineScheduleMod) error {
+func (rs *ImpRoutineSchedule) CreateSchedule(c context.Context, sch domain.RoutineScheduleMod) error {
 	err := rs.dbImp.SaveRoutineSchedule(c, sch)
 
 	if err != nil {

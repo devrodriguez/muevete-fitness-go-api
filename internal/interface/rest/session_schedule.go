@@ -20,7 +20,7 @@ func NewSessionScheduleHand(ss sessions.ISessionSchedule) SessionScheduleHand {
 
 func (ssh *SessionScheduleHand) GetSessionsSchedule(c *gin.Context) {
 
-	sch, err := ssh.uc.GetSessionsSchedule(c)
+	sch, err := ssh.uc.GetSchedule(c)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, APIResponse{

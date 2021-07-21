@@ -41,6 +41,11 @@ type NewSession struct {
 	Period    string `json:"period"`
 }
 
+type NewSessionSchedule struct {
+	Customer string `json:"customer"`
+	Weekly   string `json:"weekly"`
+}
+
 type NewWeekDay struct {
 	Name       string `json:"name"`
 	NumericDay int    `json:"numericDay"`
@@ -66,8 +71,20 @@ type Session struct {
 	Period    string `json:"period"`
 }
 
+type SessionSchedule struct {
+	ID       string    `json:"id"`
+	Customer *Customer `json:"customer"`
+	Weekly   *Weekly   `json:"weekly"`
+}
+
 type WeekDay struct {
 	ID         string `json:"id"`
 	Name       string `json:"name"`
 	NumericDay int    `json:"numericDay"`
+}
+
+type Weekly struct {
+	ID              string           `json:"id"`
+	Session         *Session         `json:"session"`
+	RoutineSchedule *RoutineSchedule `json:"routineSchedule"`
 }
