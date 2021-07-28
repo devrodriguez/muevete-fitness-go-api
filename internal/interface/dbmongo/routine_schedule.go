@@ -45,14 +45,14 @@ func (re *ImpDbRoutineSchedule) FindRoutineSchedule(c context.Context) ([]domain
 	lookDay := bson.D{
 		{"$lookup", bson.D{
 			{"from", "week_days"},
-			{"localField", "week_days"},
+			{"localField", "week_day"},
 			{"foreignField", "_id"},
-			{"as", "week_days"},
+			{"as", "week_day"},
 		}}}
 
 	unwindDay := bson.D{
 		{"$unwind", bson.D{
-			{"path", "$week_days"},
+			{"path", "$week_day"},
 			{"preserveNullAndEmptyArrays", false},
 		}}}
 

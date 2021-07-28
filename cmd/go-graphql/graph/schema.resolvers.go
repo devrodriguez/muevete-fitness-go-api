@@ -16,6 +16,7 @@ import (
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/routines"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/sessions"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/weeklies"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -117,7 +118,7 @@ func (r *mutationResolver) CreateRoutineSchedule(ctx context.Context, input mode
 	}
 
 	routineID, _ := primitive.ObjectIDFromHex(input.Routine)
-	weekDayID, _ := primitive.ObjectIDFromHex(input.Routine)
+	weekDayID, _ := primitive.ObjectIDFromHex(input.WeekDay)
 
 	routineSch.Routine = routineID
 	routineSch.WeekDay = weekDayID
@@ -129,7 +130,10 @@ func (r *mutationResolver) CreateRoutineSchedule(ctx context.Context, input mode
 		return nil, err
 	}
 
-	return nil, nil
+	return &model.RoutineSchedule{
+		Routine: &model.Routine{},
+		WeekDay: &model.WeekDay{},
+	}, nil
 }
 
 func (r *mutationResolver) CreateSessionSchedule(ctx context.Context, input model.NewSessionSchedule) (*model.SessionSchedule, error) {
@@ -344,12 +348,30 @@ func (r *queryResolver) WeekDays(ctx context.Context) ([]*model.WeekDay, error) 
 	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
 	defer cancel()
 
-	_, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	cli, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
 	if err != nil {
 		panic(err)
 	}
 
 	// TODO: implements service
+	repo := dbmongo.NewDBWeekDayCrud(cli)
+	uc := weeklies.NewWeekDayCrud(repo)
+
+	data, err := uc.GetAllDays(ctx)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range data {
+		wdItem := model.WeekDay{
+			ID:         v.ID.Hex(),
+			Name:       v.Name,
+			NumericDay: v.NumericDay,
+		}
+
+		qWeekDays = append(qWeekDays, &wdItem)
+	}
 
 	return qWeekDays, nil
 }
