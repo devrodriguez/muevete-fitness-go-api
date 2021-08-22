@@ -12,7 +12,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph/model"
+	"github.com/devrodriguez/muevete-fitness-go-api/cmd/graphql/graph/model"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -63,6 +63,7 @@ type ComplexityRoot struct {
 		CreateSession         func(childComplexity int, input model.NewSession) int
 		CreateSessionSchedule func(childComplexity int, input model.NewSessionSchedule) int
 		CreateWeekDay         func(childComplexity int, input model.NewWeekDay) int
+		CreateWeekly          func(childComplexity int, input model.NewWeekly) int
 	}
 
 	Query struct {
@@ -73,6 +74,7 @@ type ComplexityRoot struct {
 		SessionSchedules func(childComplexity int) int
 		Sessions         func(childComplexity int) int
 		WeekDays         func(childComplexity int) int
+		Weeklies         func(childComplexity int) int
 	}
 
 	Routine struct {
@@ -122,6 +124,7 @@ type MutationResolver interface {
 	CreateSessionSchedule(ctx context.Context, input model.NewSessionSchedule) (*model.SessionSchedule, error)
 	CreateSession(ctx context.Context, input model.NewSession) (*model.Session, error)
 	CreateWeekDay(ctx context.Context, input model.NewWeekDay) (*model.WeekDay, error)
+	CreateWeekly(ctx context.Context, input model.NewWeekly) (*model.Weekly, error)
 }
 type QueryResolver interface {
 	Categories(ctx context.Context) ([]*model.Category, error)
@@ -129,6 +132,7 @@ type QueryResolver interface {
 	Routines(ctx context.Context) ([]*model.Routine, error)
 	Sessions(ctx context.Context) ([]*model.Session, error)
 	WeekDays(ctx context.Context) ([]*model.WeekDay, error)
+	Weeklies(ctx context.Context) ([]*model.Weekly, error)
 	RoutineSchedules(ctx context.Context) ([]*model.RoutineSchedule, error)
 	SessionSchedules(ctx context.Context) ([]*model.SessionSchedule, error)
 }
@@ -274,6 +278,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.CreateWeekDay(childComplexity, args["input"].(model.NewWeekDay)), true
 
+	case "Mutation.createWeekly":
+		if e.complexity.Mutation.CreateWeekly == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_createWeekly_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.CreateWeekly(childComplexity, args["input"].(model.NewWeekly)), true
+
 	case "Query.categories":
 		if e.complexity.Query.Categories == nil {
 			break
@@ -322,6 +338,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.WeekDays(childComplexity), true
+
+	case "Query.weeklies":
+		if e.complexity.Query.Weeklies == nil {
+			break
+		}
+
+		return e.complexity.Query.Weeklies(childComplexity), true
 
 	case "Routine.description":
 		if e.complexity.Routine.Description == nil {
@@ -583,6 +606,7 @@ type Query {
     routines: [Routine!]!
     sessions: [Session!]!
     weekDays: [WeekDay!]
+    weeklies: [Weekly!]
     routineSchedules: [RoutineSchedule!]
     sessionSchedules: [SessionSchedule!]
 }
@@ -624,6 +648,11 @@ input NewWeekDay {
     numericDay: Int!
 }
 
+input NewWeekly {
+    session: String!
+    routineSchedule: String!
+}
+
 type Mutation {
     createCategory(input: NewCategory!): Category!
     createCustomer(input: NewCustomer!): Customer!
@@ -632,6 +661,7 @@ type Mutation {
     createSessionSchedule(input: NewSessionSchedule!): SessionSchedule!
     createSession(input: NewSession!): Session!
     createWeekDay(input: NewWeekDay!): WeekDay!
+    createWeekly(input: NewWeekly!): Weekly!
 }`, BuiltIn: false},
 }
 var parsedSchema = gqlparser.MustLoadSchema(sources...)
@@ -646,7 +676,7 @@ func (ec *executionContext) field_Mutation_createCategory_args(ctx context.Conte
 	var arg0 model.NewCategory
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewCategory2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewCategory(ctx, tmp)
+		arg0, err = ec.unmarshalNNewCategory2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewCategory(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -661,7 +691,7 @@ func (ec *executionContext) field_Mutation_createCustomer_args(ctx context.Conte
 	var arg0 model.NewCustomer
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewCustomer2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewCustomer(ctx, tmp)
+		arg0, err = ec.unmarshalNNewCustomer2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewCustomer(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -676,7 +706,7 @@ func (ec *executionContext) field_Mutation_createRoutineSchedule_args(ctx contex
 	var arg0 model.NewRoutineSchedule
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewRoutineSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewRoutineSchedule(ctx, tmp)
+		arg0, err = ec.unmarshalNNewRoutineSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewRoutineSchedule(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -691,7 +721,7 @@ func (ec *executionContext) field_Mutation_createRoutine_args(ctx context.Contex
 	var arg0 model.NewRoutine
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewRoutine(ctx, tmp)
+		arg0, err = ec.unmarshalNNewRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewRoutine(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -706,7 +736,7 @@ func (ec *executionContext) field_Mutation_createSessionSchedule_args(ctx contex
 	var arg0 model.NewSessionSchedule
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewSessionSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewSessionSchedule(ctx, tmp)
+		arg0, err = ec.unmarshalNNewSessionSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewSessionSchedule(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -721,7 +751,7 @@ func (ec *executionContext) field_Mutation_createSession_args(ctx context.Contex
 	var arg0 model.NewSession
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewSession(ctx, tmp)
+		arg0, err = ec.unmarshalNNewSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewSession(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -736,7 +766,22 @@ func (ec *executionContext) field_Mutation_createWeekDay_args(ctx context.Contex
 	var arg0 model.NewWeekDay
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNNewWeekDay2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewWeekDay(ctx, tmp)
+		arg0, err = ec.unmarshalNNewWeekDay2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewWeekDay(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_createWeekly_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 model.NewWeekly
+	if tmp, ok := rawArgs["input"]; ok {
+		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
+		arg0, err = ec.unmarshalNNewWeekly2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewWeekly(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -1047,7 +1092,7 @@ func (ec *executionContext) _Mutation_createCategory(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Category)
 	fc.Result = res
-	return ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
+	return ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createCustomer(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1089,7 +1134,7 @@ func (ec *executionContext) _Mutation_createCustomer(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Customer)
 	fc.Result = res
-	return ec.marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCustomer(ctx, field.Selections, res)
+	return ec.marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCustomer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createRoutine(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1131,7 +1176,7 @@ func (ec *executionContext) _Mutation_createRoutine(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Routine)
 	fc.Result = res
-	return ec.marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutine(ctx, field.Selections, res)
+	return ec.marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createRoutineSchedule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1173,7 +1218,7 @@ func (ec *executionContext) _Mutation_createRoutineSchedule(ctx context.Context,
 	}
 	res := resTmp.(*model.RoutineSchedule)
 	fc.Result = res
-	return ec.marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx, field.Selections, res)
+	return ec.marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createSessionSchedule(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1215,7 +1260,7 @@ func (ec *executionContext) _Mutation_createSessionSchedule(ctx context.Context,
 	}
 	res := resTmp.(*model.SessionSchedule)
 	fc.Result = res
-	return ec.marshalNSessionSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx, field.Selections, res)
+	return ec.marshalNSessionSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createSession(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1257,7 +1302,7 @@ func (ec *executionContext) _Mutation_createSession(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Session)
 	fc.Result = res
-	return ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_createWeekDay(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1299,7 +1344,49 @@ func (ec *executionContext) _Mutation_createWeekDay(ctx context.Context, field g
 	}
 	res := resTmp.(*model.WeekDay)
 	fc.Result = res
-	return ec.marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekDay(ctx, field.Selections, res)
+	return ec.marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekDay(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_createWeekly(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Mutation",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_createWeekly_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateWeekly(rctx, args["input"].(model.NewWeekly))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Weekly)
+	fc.Result = res
+	return ec.marshalNWeekly2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekly(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_categories(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1331,7 +1418,7 @@ func (ec *executionContext) _Query_categories(ctx context.Context, field graphql
 	}
 	res := resTmp.([]*model.Category)
 	fc.Result = res
-	return ec.marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategoryᚄ(ctx, field.Selections, res)
+	return ec.marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategoryᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1366,7 +1453,7 @@ func (ec *executionContext) _Query_customers(ctx context.Context, field graphql.
 	}
 	res := resTmp.([]*model.Customer)
 	fc.Result = res
-	return ec.marshalNCustomer2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCustomerᚄ(ctx, field.Selections, res)
+	return ec.marshalNCustomer2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCustomerᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_routines(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1401,7 +1488,7 @@ func (ec *executionContext) _Query_routines(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model.Routine)
 	fc.Result = res
-	return ec.marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineᚄ(ctx, field.Selections, res)
+	return ec.marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1436,7 +1523,7 @@ func (ec *executionContext) _Query_sessions(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model.Session)
 	fc.Result = res
-	return ec.marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionᚄ(ctx, field.Selections, res)
+	return ec.marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_weekDays(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1468,7 +1555,39 @@ func (ec *executionContext) _Query_weekDays(ctx context.Context, field graphql.C
 	}
 	res := resTmp.([]*model.WeekDay)
 	fc.Result = res
-	return ec.marshalOWeekDay2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekDayᚄ(ctx, field.Selections, res)
+	return ec.marshalOWeekDay2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekDayᚄ(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_weeklies(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Weeklies(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Weekly)
+	fc.Result = res
+	return ec.marshalOWeekly2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeeklyᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_routineSchedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1500,7 +1619,7 @@ func (ec *executionContext) _Query_routineSchedules(ctx context.Context, field g
 	}
 	res := resTmp.([]*model.RoutineSchedule)
 	fc.Result = res
-	return ec.marshalORoutineSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineScheduleᚄ(ctx, field.Selections, res)
+	return ec.marshalORoutineSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineScheduleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_sessionSchedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1532,7 +1651,7 @@ func (ec *executionContext) _Query_sessionSchedules(ctx context.Context, field g
 	}
 	res := resTmp.([]*model.SessionSchedule)
 	fc.Result = res
-	return ec.marshalOSessionSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionScheduleᚄ(ctx, field.Selections, res)
+	return ec.marshalOSessionSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionScheduleᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -1778,7 +1897,7 @@ func (ec *executionContext) _RoutineSchedule_routine(ctx context.Context, field 
 	}
 	res := resTmp.(*model.Routine)
 	fc.Result = res
-	return ec.marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutine(ctx, field.Selections, res)
+	return ec.marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RoutineSchedule_weekDay(ctx context.Context, field graphql.CollectedField, obj *model.RoutineSchedule) (ret graphql.Marshaler) {
@@ -1813,7 +1932,7 @@ func (ec *executionContext) _RoutineSchedule_weekDay(ctx context.Context, field 
 	}
 	res := resTmp.(*model.WeekDay)
 	fc.Result = res
-	return ec.marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekDay(ctx, field.Selections, res)
+	return ec.marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekDay(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Session_id(ctx context.Context, field graphql.CollectedField, obj *model.Session) (ret graphql.Marshaler) {
@@ -2058,7 +2177,7 @@ func (ec *executionContext) _SessionSchedule_customer(ctx context.Context, field
 	}
 	res := resTmp.(*model.Customer)
 	fc.Result = res
-	return ec.marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCustomer(ctx, field.Selections, res)
+	return ec.marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCustomer(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _SessionSchedule_weekly(ctx context.Context, field graphql.CollectedField, obj *model.SessionSchedule) (ret graphql.Marshaler) {
@@ -2093,7 +2212,7 @@ func (ec *executionContext) _SessionSchedule_weekly(ctx context.Context, field g
 	}
 	res := resTmp.(*model.Weekly)
 	fc.Result = res
-	return ec.marshalNWeekly2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekly(ctx, field.Selections, res)
+	return ec.marshalNWeekly2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekly(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _WeekDay_id(ctx context.Context, field graphql.CollectedField, obj *model.WeekDay) (ret graphql.Marshaler) {
@@ -2268,7 +2387,7 @@ func (ec *executionContext) _Weekly_session(ctx context.Context, field graphql.C
 	}
 	res := resTmp.(*model.Session)
 	fc.Result = res
-	return ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx, field.Selections, res)
+	return ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSession(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Weekly_routineSchedule(ctx context.Context, field graphql.CollectedField, obj *model.Weekly) (ret graphql.Marshaler) {
@@ -2303,7 +2422,7 @@ func (ec *executionContext) _Weekly_routineSchedule(ctx context.Context, field g
 	}
 	res := resTmp.(*model.RoutineSchedule)
 	fc.Result = res
-	return ec.marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx, field.Selections, res)
+	return ec.marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -3605,6 +3724,34 @@ func (ec *executionContext) unmarshalInputNewWeekDay(ctx context.Context, obj in
 	return it, nil
 }
 
+func (ec *executionContext) unmarshalInputNewWeekly(ctx context.Context, obj interface{}) (model.NewWeekly, error) {
+	var it model.NewWeekly
+	var asMap = obj.(map[string]interface{})
+
+	for k, v := range asMap {
+		switch k {
+		case "session":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("session"))
+			it.Session, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "routineSchedule":
+			var err error
+
+			ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("routineSchedule"))
+			it.RoutineSchedule, err = ec.unmarshalNString2string(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		}
+	}
+
+	return it, nil
+}
+
 // endregion **************************** input.gotpl *****************************
 
 // region    ************************** interface.gotpl ***************************
@@ -3737,6 +3884,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "createWeekly":
+			out.Values[i] = ec._Mutation_createWeekly(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3825,6 +3977,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_weekDays(ctx, field)
+				return res
+			})
+		case "weeklies":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_weeklies(ctx, field)
 				return res
 			})
 		case "routineSchedules":
@@ -4356,11 +4519,11 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) marshalNCategory2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v model.Category) graphql.Marshaler {
+func (ec *executionContext) marshalNCategory2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v model.Category) graphql.Marshaler {
 	return ec._Category(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v *model.Category) graphql.Marshaler {
+func (ec *executionContext) marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategory(ctx context.Context, sel ast.SelectionSet, v *model.Category) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4370,11 +4533,11 @@ func (ec *executionContext) marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmu
 	return ec._Category(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNCustomer2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCustomer(ctx context.Context, sel ast.SelectionSet, v model.Customer) graphql.Marshaler {
+func (ec *executionContext) marshalNCustomer2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCustomer(ctx context.Context, sel ast.SelectionSet, v model.Customer) graphql.Marshaler {
 	return ec._Customer(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNCustomer2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCustomerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Customer) graphql.Marshaler {
+func (ec *executionContext) marshalNCustomer2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCustomerᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Customer) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4398,7 +4561,7 @@ func (ec *executionContext) marshalNCustomer2ᚕᚖgithubᚗcomᚋdevrodriguez�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCustomer(ctx, sel, v[i])
+			ret[i] = ec.marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCustomer(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4411,7 +4574,7 @@ func (ec *executionContext) marshalNCustomer2ᚕᚖgithubᚗcomᚋdevrodriguez�
 	return ret
 }
 
-func (ec *executionContext) marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCustomer(ctx context.Context, sel ast.SelectionSet, v *model.Customer) graphql.Marshaler {
+func (ec *executionContext) marshalNCustomer2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCustomer(ctx context.Context, sel ast.SelectionSet, v *model.Customer) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4451,46 +4614,51 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) unmarshalNNewCategory2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewCategory(ctx context.Context, v interface{}) (model.NewCategory, error) {
+func (ec *executionContext) unmarshalNNewCategory2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewCategory(ctx context.Context, v interface{}) (model.NewCategory, error) {
 	res, err := ec.unmarshalInputNewCategory(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewCustomer2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewCustomer(ctx context.Context, v interface{}) (model.NewCustomer, error) {
+func (ec *executionContext) unmarshalNNewCustomer2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewCustomer(ctx context.Context, v interface{}) (model.NewCustomer, error) {
 	res, err := ec.unmarshalInputNewCustomer(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewRoutine(ctx context.Context, v interface{}) (model.NewRoutine, error) {
+func (ec *executionContext) unmarshalNNewRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewRoutine(ctx context.Context, v interface{}) (model.NewRoutine, error) {
 	res, err := ec.unmarshalInputNewRoutine(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewRoutineSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewRoutineSchedule(ctx context.Context, v interface{}) (model.NewRoutineSchedule, error) {
+func (ec *executionContext) unmarshalNNewRoutineSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewRoutineSchedule(ctx context.Context, v interface{}) (model.NewRoutineSchedule, error) {
 	res, err := ec.unmarshalInputNewRoutineSchedule(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewSession(ctx context.Context, v interface{}) (model.NewSession, error) {
+func (ec *executionContext) unmarshalNNewSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewSession(ctx context.Context, v interface{}) (model.NewSession, error) {
 	res, err := ec.unmarshalInputNewSession(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewSessionSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewSessionSchedule(ctx context.Context, v interface{}) (model.NewSessionSchedule, error) {
+func (ec *executionContext) unmarshalNNewSessionSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewSessionSchedule(ctx context.Context, v interface{}) (model.NewSessionSchedule, error) {
 	res, err := ec.unmarshalInputNewSessionSchedule(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) unmarshalNNewWeekDay2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐNewWeekDay(ctx context.Context, v interface{}) (model.NewWeekDay, error) {
+func (ec *executionContext) unmarshalNNewWeekDay2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewWeekDay(ctx context.Context, v interface{}) (model.NewWeekDay, error) {
 	res, err := ec.unmarshalInputNewWeekDay(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
 
-func (ec *executionContext) marshalNRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutine(ctx context.Context, sel ast.SelectionSet, v model.Routine) graphql.Marshaler {
+func (ec *executionContext) unmarshalNNewWeekly2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐNewWeekly(ctx context.Context, v interface{}) (model.NewWeekly, error) {
+	res, err := ec.unmarshalInputNewWeekly(ctx, v)
+	return res, graphql.ErrorOnPath(ctx, err)
+}
+
+func (ec *executionContext) marshalNRoutine2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx context.Context, sel ast.SelectionSet, v model.Routine) graphql.Marshaler {
 	return ec._Routine(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Routine) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Routine) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4514,7 +4682,7 @@ func (ec *executionContext) marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutine(ctx, sel, v[i])
+			ret[i] = ec.marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4527,7 +4695,7 @@ func (ec *executionContext) marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutine(ctx context.Context, sel ast.SelectionSet, v *model.Routine) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx context.Context, sel ast.SelectionSet, v *model.Routine) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4537,11 +4705,11 @@ func (ec *executionContext) marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmue
 	return ec._Routine(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNRoutineSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx context.Context, sel ast.SelectionSet, v model.RoutineSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutineSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx context.Context, sel ast.SelectionSet, v model.RoutineSchedule) graphql.Marshaler {
 	return ec._RoutineSchedule(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx context.Context, sel ast.SelectionSet, v *model.RoutineSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx context.Context, sel ast.SelectionSet, v *model.RoutineSchedule) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4551,11 +4719,11 @@ func (ec *executionContext) marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodrigu
 	return ec._RoutineSchedule(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v model.Session) graphql.Marshaler {
 	return ec._Session(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Session) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4579,7 +4747,7 @@ func (ec *executionContext) marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx, sel, v[i])
+			ret[i] = ec.marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSession(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4592,7 +4760,7 @@ func (ec *executionContext) marshalNSession2ᚕᚖgithubᚗcomᚋdevrodriguezᚋ
 	return ret
 }
 
-func (ec *executionContext) marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model.Session) graphql.Marshaler {
+func (ec *executionContext) marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSession(ctx context.Context, sel ast.SelectionSet, v *model.Session) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4602,11 +4770,11 @@ func (ec *executionContext) marshalNSession2ᚖgithubᚗcomᚋdevrodriguezᚋmue
 	return ec._Session(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNSessionSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx context.Context, sel ast.SelectionSet, v model.SessionSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx context.Context, sel ast.SelectionSet, v model.SessionSchedule) graphql.Marshaler {
 	return ec._SessionSchedule(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNSessionSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx context.Context, sel ast.SelectionSet, v *model.SessionSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalNSessionSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx context.Context, sel ast.SelectionSet, v *model.SessionSchedule) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4631,11 +4799,11 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 	return res
 }
 
-func (ec *executionContext) marshalNWeekDay2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekDay(ctx context.Context, sel ast.SelectionSet, v model.WeekDay) graphql.Marshaler {
+func (ec *executionContext) marshalNWeekDay2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekDay(ctx context.Context, sel ast.SelectionSet, v model.WeekDay) graphql.Marshaler {
 	return ec._WeekDay(ctx, sel, &v)
 }
 
-func (ec *executionContext) marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekDay(ctx context.Context, sel ast.SelectionSet, v *model.WeekDay) graphql.Marshaler {
+func (ec *executionContext) marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekDay(ctx context.Context, sel ast.SelectionSet, v *model.WeekDay) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4645,7 +4813,11 @@ func (ec *executionContext) marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmue
 	return ec._WeekDay(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNWeekly2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekly(ctx context.Context, sel ast.SelectionSet, v *model.Weekly) graphql.Marshaler {
+func (ec *executionContext) marshalNWeekly2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekly(ctx context.Context, sel ast.SelectionSet, v model.Weekly) graphql.Marshaler {
+	return ec._Weekly(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNWeekly2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekly(ctx context.Context, sel ast.SelectionSet, v *model.Weekly) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
@@ -4908,7 +5080,7 @@ func (ec *executionContext) marshalOBoolean2ᚖbool(ctx context.Context, sel ast
 	return graphql.MarshalBoolean(*v)
 }
 
-func (ec *executionContext) marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Category) graphql.Marshaler {
+func (ec *executionContext) marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Category) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -4935,7 +5107,7 @@ func (ec *executionContext) marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguez�
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐCategory(ctx, sel, v[i])
+			ret[i] = ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4948,7 +5120,7 @@ func (ec *executionContext) marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguez�
 	return ret
 }
 
-func (ec *executionContext) marshalORoutineSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineScheduleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RoutineSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalORoutineSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineScheduleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RoutineSchedule) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -4975,7 +5147,7 @@ func (ec *executionContext) marshalORoutineSchedule2ᚕᚖgithubᚗcomᚋdevrodr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx, sel, v[i])
+			ret[i] = ec.marshalNRoutineSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4988,7 +5160,7 @@ func (ec *executionContext) marshalORoutineSchedule2ᚕᚖgithubᚗcomᚋdevrodr
 	return ret
 }
 
-func (ec *executionContext) marshalOSessionSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionScheduleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SessionSchedule) graphql.Marshaler {
+func (ec *executionContext) marshalOSessionSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionScheduleᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.SessionSchedule) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5015,7 +5187,7 @@ func (ec *executionContext) marshalOSessionSchedule2ᚕᚖgithubᚗcomᚋdevrodr
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSessionSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx, sel, v[i])
+			ret[i] = ec.marshalNSessionSchedule2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐSessionSchedule(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -5052,7 +5224,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return graphql.MarshalString(*v)
 }
 
-func (ec *executionContext) marshalOWeekDay2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekDayᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WeekDay) graphql.Marshaler {
+func (ec *executionContext) marshalOWeekDay2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekDayᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.WeekDay) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -5079,7 +5251,47 @@ func (ec *executionContext) marshalOWeekDay2ᚕᚖgithubᚗcomᚋdevrodriguezᚋ
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgoᚑgraphqlᚋgraphᚋmodelᚐWeekDay(ctx, sel, v[i])
+			ret[i] = ec.marshalNWeekDay2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekDay(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalOWeekly2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeeklyᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Weekly) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNWeekly2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐWeekly(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

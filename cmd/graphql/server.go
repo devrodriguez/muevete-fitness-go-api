@@ -9,8 +9,8 @@ import (
 
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
-	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph"
-	"github.com/devrodriguez/muevete-fitness-go-api/cmd/go-graphql/graph/generated"
+	"github.com/devrodriguez/muevete-fitness-go-api/cmd/graphql/graph"
+	"github.com/devrodriguez/muevete-fitness-go-api/cmd/graphql/graph/generated"
 )
 
 const defaultPort = "8080"

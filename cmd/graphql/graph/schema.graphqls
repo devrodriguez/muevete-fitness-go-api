@@ -54,6 +54,7 @@ type Query {
     routines: [Routine!]!
     sessions: [Session!]!
     weekDays: [WeekDay!]
+    weeklies: [Weekly!]
     routineSchedules: [RoutineSchedule!]
     sessionSchedules: [SessionSchedule!]
 }
@@ -95,6 +96,11 @@ input NewWeekDay {
     numericDay: Int!
 }
 
+input NewWeekly {
+    session: String!
+    routineSchedule: String!
+}
+
 type Mutation {
     createCategory(input: NewCategory!): Category!
     createCustomer(input: NewCustomer!): Customer!
@@ -103,4 +109,5 @@ type Mutation {
     createSessionSchedule(input: NewSessionSchedule!): SessionSchedule!
     createSession(input: NewSession!): Session!
     createWeekDay(input: NewWeekDay!): WeekDay!
+    createWeekly(input: NewWeekly!): Weekly!
 }

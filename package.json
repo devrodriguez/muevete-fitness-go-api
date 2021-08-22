@@ -1,7 +1,7 @@
 {
     "scripts": {
         "gorun": "go run ./cmd/api/main.go",
-        "graphrun": "go run ./cmd/go-graphql/server.go",
-        "generate": "cd cmd/go-graphql/graph && go generate"
+        "graphrun": "go run ./cmd/graphql/server.go",
+        "generate": "cd cmd/graphql/graph && go generate"
     }
 }

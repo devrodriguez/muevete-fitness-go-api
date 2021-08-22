@@ -1,16 +1,16 @@
 package dbmongo
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
-	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 type IDbWeeklyCrud interface {
-	SaveWeekly(*gin.Context, domain.WeeklyMod) error
-	FindWeekly(*gin.Context) ([]domain.Weekly, error)
+	SaveWeekly(context.Context, domain.WeeklyMod) error
+	FindWeekly(context.Context) ([]domain.Weekly, error)
 }
 
 type ImpDbWeeklyCrud struct {
@@ -23,30 +23,90 @@ func NewDbWeeklyCrud(cli *mongo.Client) IDbWeeklyCrud {
 	}
 }
 
-func (re *ImpDbWeeklyCrud) SaveWeekly(c *gin.Context, wk domain.WeeklyMod) error {
-	docRef := re.Client.Database("fitness").Collection("weeklies")
-
-	_, err := docRef.InsertOne(c, wk)
-
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (re *ImpDbWeeklyCrud) FindWeekly(c *gin.Context) ([]domain.Weekly, error) {
+func (re *ImpDbWeeklyCrud) FindWeekly(ctx context.Context) ([]domain.Weekly, error) {
 	var wks []domain.Weekly
 
-	findOpt := options.Find()
 	docRef := re.Client.Database("fitness").Collection("weeklies")
-	cursor, err := docRef.Find(c, bson.D{{}}, findOpt)
+
+	lookSes := bson.D{
+		{"$lookup", bson.D{
+			{"from", "sessions"},
+			{"localField", "session"},
+			{"foreignField", "_id"},
+			{"as", "session"},
+		}}}
+
+	unwindSes := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$session"},
+			{"preserveNullAndEmptyArrays", false},
+		}},
+	}
+
+	lookRouSch := bson.D{
+		{"$lookup", bson.D{
+			{"from", "routine_schedule"},
+			{"localField", "routine_schedule"},
+			{"foreignField", "_id"},
+			{"as", "routine_schedule"},
+		}},
+	}
+
+	unwindRouSch := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$routine_schedule"},
+			{"preserveNullAndEmptyArrays", false},
+		}},
+	}
+
+	lookRouSchRou := bson.D{
+		{"$lookup", bson.D{
+			{"from", "routines"},
+			{"localField", "routine_schedule.routine"},
+			{"foreignField", "_id"},
+			{"as", "routine_schedule.routine"},
+		}},
+	}
+
+	unwindRouSchRou := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$routine_schedule.routine"},
+			{"preserveNullAndEmptyArrays", false},
+		}},
+	}
+
+	lookRouSchWkd := bson.D{
+		{"$lookup", bson.D{
+			{"from", "week_days"},
+			{"localField", "routine_schedule.week_day"},
+			{"foreignField", "_id"},
+			{"as", "routine_schedule.week_day"},
+		}},
+	}
+
+	unwindRouSchWkd := bson.D{
+		{"$unwind", bson.D{
+			{"path", "$routine_schedule.week_day"},
+			{"preserveNullAndEmptyArrays", false},
+		}},
+	}
+
+	cursor, err := docRef.Aggregate(ctx, mongo.Pipeline{
+		lookSes,
+		unwindSes,
+		lookRouSch,
+		unwindRouSch,
+		lookRouSchRou,
+		unwindRouSchRou,
+		lookRouSchWkd,
+		unwindRouSchWkd,
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	for cursor.Next(c) {
+	for cursor.Next(ctx) {
 		var wk domain.Weekly
 
 		if err := cursor.Decode(&wk); err != nil {
@@ -57,4 +117,16 @@ func (re *ImpDbWeeklyCrud) FindWeekly(c *gin.Context) ([]domain.Weekly, error) {
 	}
 
 	return wks, nil
+}
+
+func (re *ImpDbWeeklyCrud) SaveWeekly(ctx context.Context, wk domain.WeeklyMod) error {
+	collRef := re.Client.Database("fitness").Collection("weeklies")
+
+	_, err := collRef.InsertOne(ctx, wk)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -51,6 +51,11 @@ type NewWeekDay struct {
 	NumericDay int    `json:"numericDay"`
 }
 
+type NewWeekly struct {
+	Session         string `json:"session"`
+	RoutineSchedule string `json:"routineSchedule"`
+}
+
 type Routine struct {
 	ID          string `json:"id"`
 	Name        string `json:"name"`

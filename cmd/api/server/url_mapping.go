@@ -50,7 +50,7 @@ func MapUrls(server *gin.Engine, dbCli *mongo.Client) {
 
 	// Weekly
 	wkRepo := dbmongo.NewDbWeeklyCrud(dbCli)
-	wkUc := weeklies.NewCustomerCrud(wkRepo)
+	wkUc := weeklies.NewWeeklyCrud(wkRepo)
 	wkHand := rest.NewWeeklyHand(wkUc)
 
 	pubRouter := server.Group("/public")

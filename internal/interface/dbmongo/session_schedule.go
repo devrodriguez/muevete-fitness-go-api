@@ -32,23 +32,19 @@ func (ss *ImpDbSessionSchedule) GetAllSessionSchedule(ctx context.Context) ([]do
 
 	docRef := ss.Client.Database("fitness").Collection("session_schedule")
 	lookCust := bson.D{
-		{
-			"$lookup", bson.D{
-				{"from", "customers"},
-				{"localField", "customer"},
-				{"foreignField", "_id"},
-				{"as", "customer"},
-			},
-		},
+		{"$lookup", bson.D{
+			{"from", "customers"},
+			{"localField", "customer"},
+			{"foreignField", "_id"},
+			{"as", "customer"},
+		}},
 	}
 
 	unwindCust := bson.D{
-		{
-			"$unwind", bson.D{
-				{"path", "$customer"},
-				{"preserveNullAndEmptyArrays", false},
-			},
-		},
+		{"$unwind", bson.D{
+			{"path", "$customer"},
+			{"preserveNullAndEmptyArrays", false},
+		}},
 	}
 
 	lookWeek := bson.D{{"$lookup", bson.D{
@@ -62,7 +58,8 @@ func (ss *ImpDbSessionSchedule) GetAllSessionSchedule(ctx context.Context) ([]do
 		{"$unwind", bson.D{
 			{"path", "$weekly"},
 			{"preserveNullAndEmptyArrays", false},
-		}}}
+		}},
+	}
 
 	lookSes := bson.D{
 		{"$lookup", bson.D{
@@ -70,7 +67,8 @@ func (ss *ImpDbSessionSchedule) GetAllSessionSchedule(ctx context.Context) ([]do
 			{"localField", "weekly.session"},
 			{"foreignField", "_id"},
 			{"as", "weekly.session"},
-		}}}
+		}},
+	}
 
 	unwindSes := bson.D{
 		{"$unwind", bson.D{
@@ -84,7 +82,8 @@ func (ss *ImpDbSessionSchedule) GetAllSessionSchedule(ctx context.Context) ([]do
 			{"localField", "weekly.routine_schedule"},
 			{"foreignField", "_id"},
 			{"as", "weekly.routine_schedule"},
-		}}}
+		}},
+	}
 
 	unwindRouSch := bson.D{
 		{"$unwind", bson.D{
@@ -109,14 +108,14 @@ func (ss *ImpDbSessionSchedule) GetAllSessionSchedule(ctx context.Context) ([]do
 	lookRouSchWkd := bson.D{
 		{"$lookup", bson.D{
 			{"from", "week_days"},
-			{"localField", "weekly.routine_schedule.week_days"},
+			{"localField", "weekly.routine_schedule.week_day"},
 			{"foreignField", "_id"},
-			{"as", "weekly.routine_schedule.week_days"},
+			{"as", "weekly.routine_schedule.week_day"},
 		}}}
 
 	unwindRouSchWkd := bson.D{
 		{"$unwind", bson.D{
-			{"path", "$weekly.routine_schedule.week_days"},
+			{"path", "$weekly.routine_schedule.week_day"},
 			{"preserveNullAndEmptyArrays", false},
 		}}}
 

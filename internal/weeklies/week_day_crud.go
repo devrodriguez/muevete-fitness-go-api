@@ -9,10 +9,11 @@ import (
 
 type IWeekDayCrud interface {
 	GetAllDays(context.Context) ([]domain.WeekDay, error)
+	SaveWeekDay(context.Context, domain.WeekDay) (*domain.WeekDay, error)
 }
 
 type ImpWeekDayCrud struct {
-	dbmongo.IDBWeekDayCrud
+	dbImp dbmongo.IDBWeekDayCrud
 }
 
 func NewWeekDayCrud(dbImp dbmongo.IDBWeekDayCrud) IWeekDayCrud {
@@ -22,11 +23,20 @@ func NewWeekDayCrud(dbImp dbmongo.IDBWeekDayCrud) IWeekDayCrud {
 }
 
 func (wd *ImpWeekDayCrud) GetAllDays(ctx context.Context) ([]domain.WeekDay, error) {
-	wks, err := wd.Find(ctx)
+	wks, err := wd.dbImp.FindWeekDay(ctx)
 
 	if err != nil {
 		return nil, err
 	}
 
 	return wks, nil
+}
+
+func (wd *ImpWeekDayCrud) SaveWeekDay(ctx context.Context, w domain.WeekDay) (*domain.WeekDay, error) {
+	wkd, err := wd.dbImp.SaveWeekDay(ctx, w)
+	if err != nil {
+		return nil, err
+	}
+
+	return wkd, nil
 }

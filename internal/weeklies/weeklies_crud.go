@@ -1,28 +1,29 @@
 package weeklies
 
 import (
+	"context"
+
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
 	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/dbmongo"
-	"github.com/gin-gonic/gin"
 )
 
 type IWeeklyCrud interface {
-	CreateWeekly(c *gin.Context, wk domain.WeeklyMod) error
-	GetAllWeeklies(c *gin.Context) ([]domain.Weekly, error)
+	CreateWeekly(context.Context, domain.WeeklyMod) error
+	GetAllWeeklies(context.Context) ([]domain.Weekly, error)
 }
 
 type ImpWeeklyCrud struct {
 	dbImp dbmongo.IDbWeeklyCrud
 }
 
-func NewCustomerCrud(dbImp dbmongo.IDbWeeklyCrud) IWeeklyCrud {
+func NewWeeklyCrud(dbImp dbmongo.IDbWeeklyCrud) IWeeklyCrud {
 	return &ImpWeeklyCrud{
 		dbImp,
 	}
 }
 
-func (wc *ImpWeeklyCrud) GetAllWeeklies(c *gin.Context) ([]domain.Weekly, error) {
-	wks, err := wc.dbImp.FindWeekly(c)
+func (wc *ImpWeeklyCrud) GetAllWeeklies(ctx context.Context) ([]domain.Weekly, error) {
+	wks, err := wc.dbImp.FindWeekly(ctx)
 
 	if err != nil {
 		return nil, err
@@ -31,8 +32,8 @@ func (wc *ImpWeeklyCrud) GetAllWeeklies(c *gin.Context) ([]domain.Weekly, error)
 	return wks, nil
 }
 
-func (wc *ImpWeeklyCrud) CreateWeekly(c *gin.Context, wk domain.WeeklyMod) error {
-	err := wc.dbImp.SaveWeekly(c, wk)
+func (wc *ImpWeeklyCrud) CreateWeekly(ctx context.Context, wk domain.WeeklyMod) error {
+	err := wc.dbImp.SaveWeekly(ctx, wk)
 
 	if err != nil {
 		return err
