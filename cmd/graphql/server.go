@@ -11,6 +11,8 @@ import (
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/devrodriguez/muevete-fitness-go-api/cmd/graphql/graph"
 	"github.com/devrodriguez/muevete-fitness-go-api/cmd/graphql/graph/generated"
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/interface/rest"
+	"github.com/devrodriguez/muevete-fitness-go-api/middlewares"
 )
 
 const defaultPort = "8080"
@@ -42,8 +44,17 @@ func main() {
 
 	// Setting up Gin
 	r := gin.Default()
+	r.Use(middlewares.EnableCORS())
 	r.POST("/query", graphqlHandler())
 	r.GET("/", playgroundHandler())
+	r.POST("/auth/login", func(c *gin.Context) {
+		c.JSON(http.StatusOK, rest.APIResponse{
+			Data: gin.H{
+				"token": "456ty.fybuijnk.87568hdsfs",
+				"c":     "1235",
+			},
+		})
+	})
 	r.Run()
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
