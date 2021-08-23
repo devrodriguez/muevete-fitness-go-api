@@ -1,0 +1,61 @@
+package dbmongo
+
+import (
+	"context"
+
+	"github.com/devrodriguez/muevete-fitness-go-api/internal/domain"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+)
+
+type IDbSessionCrud interface {
+	GetAllSessions(context.Context) ([]domain.Session, error)
+	InsertSession(context.Context, domain.Session) error
+}
+
+type ImpDbSessionCrud struct {
+	*mongo.Client
+}
+
+func NewDbSessionCrud(cli *mongo.Client) IDbSessionCrud {
+	return &ImpDbSessionCrud{
+		cli,
+	}
+}
+
+func (sc *ImpDbSessionCrud) GetAllSessions(c context.Context) ([]domain.Session, error) {
+	var sess []domain.Session
+
+	findOpt := options.Find()
+	docRef := sc.Client.Database("fitness").Collection("sessions")
+	cursor, err := docRef.Find(c, bson.D{{}}, findOpt)
+
+	if err != nil {
+		return nil, err
+	}
+
+	for cursor.Next(c) {
+		var ses domain.Session
+
+		if err := cursor.Decode(&ses); err != nil {
+			panic(err)
+		}
+
+		sess = append(sess, ses)
+	}
+
+	return sess, nil
+}
+
+func (sc *ImpDbSessionCrud) InsertSession(c context.Context, ses domain.Session) error {
+	docRef := sc.Client.Database("fitness").Collection("sessions")
+
+	_, err := docRef.InsertOne(c, ses)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
