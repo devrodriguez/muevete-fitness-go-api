@@ -493,6 +493,49 @@ func (r *queryResolver) RoutineSchedules(ctx context.Context) ([]*model.RoutineS
 	return qRoutineSch, nil
 }
 
+func (r *queryResolver) RoutinesByDay(ctx context.Context) ([]*model.RoutineCategory, error) {
+	var rcs = make([]*model.RoutineCategory, 0, 10)
+
+	mctx, cancel := context.WithTimeout(context.Background(), time.Duration(60)*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(mctx, options.Client().ApplyURI("mongodb+srv://adminUser:Chrome.2020@auditcluster-ohkrf.gcp.mongodb.net/fitness?retryWrites=true&w=majority"))
+	if err != nil {
+		panic(err)
+	}
+
+	repo := dbmongo.NewDbRoutineCrud(client)
+	uc := routines.NewCrudRoutine(repo)
+
+	data, err := uc.GetRoutineByDay(ctx, "")
+	if err != nil {
+		return nil, err
+	}
+
+	for _, v := range data {
+		item := model.RoutineCategory{
+			Category: &model.Category{
+				ID:   v.Category.ID.Hex(),
+				Name: v.Category.Name,
+			},
+		}
+
+		for _, v := range v.Routines {
+			itemRoutine := &model.Routine{
+				ID:          v.ID.Hex(),
+				Name:        v.Name,
+				Description: v.Description,
+			}
+
+			item.Routines = append(item.Routines, itemRoutine)
+		}
+
+		rcs = append(rcs, &item)
+	}
+
+	return rcs, nil
+}
+
 func (r *queryResolver) SessionSchedules(ctx context.Context) ([]*model.SessionSchedule, error) {
 	var qSessionSch = make([]*model.SessionSchedule, 0, 10)
 

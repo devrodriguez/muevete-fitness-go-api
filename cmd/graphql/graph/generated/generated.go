@@ -71,6 +71,7 @@ type ComplexityRoot struct {
 		Customers        func(childComplexity int) int
 		RoutineSchedules func(childComplexity int) int
 		Routines         func(childComplexity int) int
+		RoutinesByDay    func(childComplexity int) int
 		SessionSchedules func(childComplexity int) int
 		Sessions         func(childComplexity int) int
 		WeekDays         func(childComplexity int) int
@@ -81,6 +82,12 @@ type ComplexityRoot struct {
 		Description func(childComplexity int) int
 		ID          func(childComplexity int) int
 		Name        func(childComplexity int) int
+	}
+
+	RoutineCategory struct {
+		Category func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Routines func(childComplexity int) int
 	}
 
 	RoutineSchedule struct {
@@ -134,6 +141,7 @@ type QueryResolver interface {
 	WeekDays(ctx context.Context) ([]*model.WeekDay, error)
 	Weeklies(ctx context.Context) ([]*model.Weekly, error)
 	RoutineSchedules(ctx context.Context) ([]*model.RoutineSchedule, error)
+	RoutinesByDay(ctx context.Context) ([]*model.RoutineCategory, error)
 	SessionSchedules(ctx context.Context) ([]*model.SessionSchedule, error)
 }
 
@@ -318,6 +326,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Routines(childComplexity), true
 
+	case "Query.routinesByDay":
+		if e.complexity.Query.RoutinesByDay == nil {
+			break
+		}
+
+		return e.complexity.Query.RoutinesByDay(childComplexity), true
+
 	case "Query.sessionSchedules":
 		if e.complexity.Query.SessionSchedules == nil {
 			break
@@ -366,6 +381,27 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Routine.Name(childComplexity), true
+
+	case "RoutineCategory.category":
+		if e.complexity.RoutineCategory.Category == nil {
+			break
+		}
+
+		return e.complexity.RoutineCategory.Category(childComplexity), true
+
+	case "RoutineCategory.id":
+		if e.complexity.RoutineCategory.ID == nil {
+			break
+		}
+
+		return e.complexity.RoutineCategory.ID(childComplexity), true
+
+	case "RoutineCategory.routines":
+		if e.complexity.RoutineCategory.Routines == nil {
+			break
+		}
+
+		return e.complexity.RoutineCategory.Routines(childComplexity), true
 
 	case "RoutineSchedule.id":
 		if e.complexity.RoutineSchedule.ID == nil {
@@ -574,6 +610,12 @@ type RoutineSchedule {
     weekDay: WeekDay!
 }
 
+type RoutineCategory {
+    id: ID!
+    routines: [Routine]!
+    category: Category!
+}
+
 type SessionSchedule {
     id: ID!
     customer: Customer!
@@ -608,6 +650,7 @@ type Query {
     weekDays: [WeekDay!]
     weeklies: [Weekly!]
     routineSchedules: [RoutineSchedule!]
+    routinesByDay: [RoutineCategory!] 
     sessionSchedules: [SessionSchedule!]
 }
 
@@ -1622,6 +1665,38 @@ func (ec *executionContext) _Query_routineSchedules(ctx context.Context, field g
 	return ec.marshalORoutineSchedule2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineScheduleᚄ(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_routinesByDay(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "Query",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   true,
+		IsResolver: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().RoutinesByDay(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.([]*model.RoutineCategory)
+	fc.Result = res
+	return ec.marshalORoutineCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineCategoryᚄ(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_sessionSchedules(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -1828,6 +1903,111 @@ func (ec *executionContext) _Routine_description(ctx context.Context, field grap
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RoutineCategory_id(ctx context.Context, field graphql.CollectedField, obj *model.RoutineCategory) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoutineCategory",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ID, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RoutineCategory_routines(ctx context.Context, field graphql.CollectedField, obj *model.RoutineCategory) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoutineCategory",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Routines, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.([]*model.Routine)
+	fc.Result = res
+	return ec.marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _RoutineCategory_category(ctx context.Context, field graphql.CollectedField, obj *model.RoutineCategory) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:     "RoutineCategory",
+		Field:      field,
+		Args:       nil,
+		IsMethod:   false,
+		IsResolver: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Category, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Category)
+	fc.Result = res
+	return ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategory(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RoutineSchedule_id(ctx context.Context, field graphql.CollectedField, obj *model.RoutineSchedule) (ret graphql.Marshaler) {
@@ -4001,6 +4181,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_routineSchedules(ctx, field)
 				return res
 			})
+		case "routinesByDay":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_routinesByDay(ctx, field)
+				return res
+			})
 		case "sessionSchedules":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4050,6 +4241,43 @@ func (ec *executionContext) _Routine(ctx context.Context, sel ast.SelectionSet, 
 			}
 		case "description":
 			out.Values[i] = ec._Routine_description(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var routineCategoryImplementors = []string{"RoutineCategory"}
+
+func (ec *executionContext) _RoutineCategory(ctx context.Context, sel ast.SelectionSet, obj *model.RoutineCategory) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, routineCategoryImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("RoutineCategory")
+		case "id":
+			out.Values[i] = ec._RoutineCategory_id(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "routines":
+			out.Values[i] = ec._RoutineCategory_routines(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "category":
+			out.Values[i] = ec._RoutineCategory_category(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -4658,6 +4886,43 @@ func (ec *executionContext) marshalNRoutine2githubᚗcomᚋdevrodriguezᚋmuevet
 	return ec._Routine(ctx, sel, &v)
 }
 
+func (ec *executionContext) marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx context.Context, sel ast.SelectionSet, v []*model.Routine) graphql.Marshaler {
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalORoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
 func (ec *executionContext) marshalNRoutine2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Routine) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
@@ -4703,6 +4968,16 @@ func (ec *executionContext) marshalNRoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmue
 		return graphql.Null
 	}
 	return ec._Routine(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNRoutineCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineCategory(ctx context.Context, sel ast.SelectionSet, v *model.RoutineCategory) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._RoutineCategory(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNRoutineSchedule2githubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineSchedule(ctx context.Context, sel ast.SelectionSet, v model.RoutineSchedule) graphql.Marshaler {
@@ -5108,6 +5383,53 @@ func (ec *executionContext) marshalOCategory2ᚕᚖgithubᚗcomᚋdevrodriguez�
 				defer wg.Done()
 			}
 			ret[i] = ec.marshalNCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐCategory(ctx, sel, v[i])
+		}
+		if isLen1 {
+			f(i)
+		} else {
+			go f(i)
+		}
+
+	}
+	wg.Wait()
+	return ret
+}
+
+func (ec *executionContext) marshalORoutine2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutine(ctx context.Context, sel ast.SelectionSet, v *model.Routine) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Routine(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalORoutineCategory2ᚕᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineCategoryᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.RoutineCategory) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	ret := make(graphql.Array, len(v))
+	var wg sync.WaitGroup
+	isLen1 := len(v) == 1
+	if !isLen1 {
+		wg.Add(len(v))
+	}
+	for i := range v {
+		i := i
+		fc := &graphql.FieldContext{
+			Index:  &i,
+			Result: &v[i],
+		}
+		ctx := graphql.WithFieldContext(ctx, fc)
+		f := func(i int) {
+			defer func() {
+				if r := recover(); r != nil {
+					ec.Error(ctx, ec.Recover(ctx, r))
+					ret = nil
+				}
+			}()
+			if !isLen1 {
+				defer wg.Done()
+			}
+			ret[i] = ec.marshalNRoutineCategory2ᚖgithubᚗcomᚋdevrodriguezᚋmueveteᚑfitnessᚑgoᚑapiᚋcmdᚋgraphqlᚋgraphᚋmodelᚐRoutineCategory(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)

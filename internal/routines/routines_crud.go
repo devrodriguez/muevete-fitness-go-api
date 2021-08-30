@@ -10,6 +10,7 @@ import (
 type ICrudRoutine interface {
 	GetAllRoutines(c context.Context) ([]domain.Routine, error)
 	CreateRoutine(c context.Context, ds domain.Routine) error
+	GetRoutineByDay(c context.Context, day string) ([]domain.RoutineCategory, error)
 }
 
 type ImpCrudRoutine struct {
@@ -40,4 +41,13 @@ func (cs *ImpCrudRoutine) CreateRoutine(c context.Context, r domain.Routine) err
 	}
 
 	return nil
+}
+
+func (cs *ImpCrudRoutine) GetRoutineByDay(c context.Context, day string) ([]domain.RoutineCategory, error) {
+	rc, err := cs.dbImp.QRoutinesByDay(c, day)
+	if err != nil {
+		return nil, err
+	}
+
+	return rc, err
 }

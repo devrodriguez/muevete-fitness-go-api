@@ -62,6 +62,12 @@ type Routine struct {
 	Description string `json:"description"`
 }
 
+type RoutineCategory struct {
+	ID       string     `json:"id"`
+	Routines []*Routine `json:"routines"`
+	Category *Category  `json:"category"`
+}
+
 type RoutineSchedule struct {
 	ID      string   `json:"id"`
 	Routine *Routine `json:"routine"`
